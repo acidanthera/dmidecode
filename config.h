@@ -18,7 +18,7 @@
 #endif
 
 /* Use memory alignment workaround or not */
-#ifdef __ia64__
+#ifndef FORCE_UNALIGNED_READ
 #define ALIGNMENT_WORKAROUND
 #endif
 
