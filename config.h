@@ -8,12 +8,12 @@
 /* Default memory device file */
 #if defined(__BEOS__) || defined(__HAIKU__)
 #define DEFAULT_MEM_DEV "/dev/misc/mem"
-#else
-#ifdef __sun
+#elif defined(__sun)
 #define DEFAULT_MEM_DEV "/dev/xsvc"
+#elif defined(__APPLE__)
+#define DEFAULT_MEM_DEV "I/O Registry"
 #else
 #define DEFAULT_MEM_DEV "/dev/mem"
-#endif
 #endif
 
 /* Use mmap or not */

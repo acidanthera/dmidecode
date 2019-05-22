@@ -25,6 +25,12 @@ CFLAGS += -O2
 # Pass linker flags here
 LDFLAGS =
 
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+	CFLAGS += -mmacosx-version-min=10.7
+	LDFLAGS += -Wl,-framework,CoreFoundation -Wl,-framework,IOKit
+endif
+
 DESTDIR =
 prefix  = /usr/local
 sbindir = $(prefix)/sbin

@@ -37,6 +37,11 @@
 #endif /* !MAP_FAILED */
 #endif /* USE MMAP */
 
+#ifdef __APPLE__
+#include <CoreFoundation/CoreFoundation.h>
+#include <IOKit/IOKitLib.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -88,6 +93,65 @@ int checksum(const u8 *buf, size_t len)
 	return (sum == 0);
 }
 
+static void *mem_chunk_ioreg(size_t base, size_t len)
+{
+#ifdef __APPLE__
+	CFDataRef data;
+	CFStringRef field;
+	io_registry_entry_t entry;
+	void *blob;
+	size_t org_len;
+
+	if (base == 0xF0000)
+	{
+		field = CFSTR("SMBIOS-EPS");
+	}
+	else
+	{
+		field = CFSTR("SMBIOS");
+	}
+
+	data = NULL;
+	entry = IORegistryEntryFromPath(kIOMasterPortDefault,
+		"IOService:/AppleACPIPlatformExpert/bios/AppleSMBIOS");
+	if (entry != MACH_PORT_NULL)
+	{
+		data = IORegistryEntryCreateCFProperty(entry, field, kCFAllocatorDefault, 0);
+		if (data != NULL)
+		{
+			if (CFGetTypeID(data) != CFDataGetTypeID())
+			{
+				CFRelease(data);
+				data = NULL;
+			}
+		}
+		IOObjectRelease(entry);
+	}
+
+	if (data != NULL)
+	{
+		if ((blob = calloc(1, len)) != NULL)
+		{
+			org_len = (size_t)CFDataGetLength(data);
+			if (org_len < len)
+				len = org_len;
+			memcpy(blob, CFDataGetBytePtr(data), len);
+			CFRelease(data);
+			return blob;
+		} else {
+			CFRelease(data);
+			perror("malloc");
+			return NULL;
+		}
+	}
+
+#endif
+
+	fprintf(stderr, "Unable to access I/O Registry at %lx for %lu bytes\n",
+		(unsigned long)base, (unsigned long)len);
+	return NULL;
+}
+
 /*
  * Copy a physical memory chunk into a memory buffer.
  * This function allocates memory.
@@ -100,6 +164,10 @@ void *mem_chunk(size_t base, size_t len, const char *devmem)
 	size_t mmoffset;
 	void *mmp;
 #endif
+
+	if (strcmp(devmem, "I/O Registry") == 0) {
+		return mem_chunk_ioreg(base, len);
+	}
 
 	if ((fd = open(devmem, O_RDONLY)) == -1)
 	{
