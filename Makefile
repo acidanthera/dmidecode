@@ -1,11 +1,15 @@
 #
-#	DMI Decode
-#	BIOS Decode
+#   DMI Decode
+#   BIOS Decode
+#   VPD Decode
 #
-#	(C) 2000-2002 Alan Cox <alan@redhat.com>
-#	(C) 2002-2007 Jean Delvare <khali@linux-fr.org>
+#   Copyright (C) 2000-2002 Alan Cox <alan@redhat.com>
+#   Copyright (C) 2002-2007 Jean Delvare <khali@linux-fr.org>
 #
-#	Licensed under the GNU Public License.
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
 #
 
 CC      = gcc
@@ -121,7 +125,7 @@ install-man :
 
 uninstall-man :
 	for program in $(PROGRAMS) ; do \
-	$(RM) $(DESTDIR)$(man8dir)/$$program.8
+	$(RM) $(DESTDIR)$(man8dir)/$$program.8 ; done
 
 install-doc :
 	$(INSTALL_DIR) $(DESTDIR)$(docdir)

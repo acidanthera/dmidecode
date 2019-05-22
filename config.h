@@ -6,10 +6,14 @@
 #define CONFIG_H
 
 /* Default memory device file */
-#ifdef __BEOS__
+#if defined(__BEOS__) || defined(__HAIKU__)
 #define DEFAULT_MEM_DEV "/dev/misc/mem"
 #else
+#ifdef __sun
+#define DEFAULT_MEM_DEV "/dev/xsvc"
+#else
 #define DEFAULT_MEM_DEV "/dev/mem"
+#endif
 #endif
 
 /* Use mmap or not */

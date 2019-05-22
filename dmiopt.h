@@ -24,8 +24,6 @@ struct string_keyword
 	const char *keyword;
 	u8 type;
 	u8 offset;
-	const char *(*lookup)(u8);
-	void (*print)(u8 *);
 };
 
 struct opt

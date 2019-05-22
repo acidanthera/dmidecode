@@ -26,10 +26,4 @@ struct dmi_header
 	u8 *data;
 };
 
-extern u16 table_len;
-
 const char *dmi_string(const struct dmi_header *dm, u8 s);
-void dmi_system_uuid(u8 *p);
-const char *dmi_chassis_type(u8 code);
-const char *dmi_processor_family(u8 *p);
-void dmi_processor_frequency(u8 *p);
