@@ -1,0 +1,204 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXFileReference section */
+		12ECFB3F1852EADE0028E3A9 /* .DS_Store */ = {isa = PBXFileReference; lastKnownFileType = file; path = .DS_Store; sourceTree = "<group>"; };
+		12ECFB401852EADE0028E3A9 /* AUTHORS */ = {isa = PBXFileReference; lastKnownFileType = text; path = AUTHORS; sourceTree = "<group>"; };
+		12ECFB411852EADE0028E3A9 /* biosdecode */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = biosdecode; sourceTree = "<group>"; };
+		12ECFB421852EADE0028E3A9 /* biosdecode.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = biosdecode.c; sourceTree = "<group>"; };
+		12ECFB431852EADE0028E3A9 /* biosdecode.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = biosdecode.o; sourceTree = "<group>"; };
+		12ECFB441852EADE0028E3A9 /* CHANGELOG */ = {isa = PBXFileReference; lastKnownFileType = text; path = CHANGELOG; sourceTree = "<group>"; };
+		12ECFB451852EADE0028E3A9 /* config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
+		12ECFB461852EADE0028E3A9 /* dmidecode */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = dmidecode; sourceTree = "<group>"; };
+		12ECFB471852EADE0028E3A9 /* dmidecode.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = dmidecode.c; sourceTree = "<group>"; };
+		12ECFB481852EADE0028E3A9 /* dmidecode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dmidecode.h; sourceTree = "<group>"; };
+		12ECFB491852EADE0028E3A9 /* dmidecode.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = dmidecode.o; sourceTree = "<group>"; };
+		12ECFB4A1852EADE0028E3A9 /* dmioem.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = dmioem.c; sourceTree = "<group>"; };
+		12ECFB4B1852EADE0028E3A9 /* dmioem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dmioem.h; sourceTree = "<group>"; };
+		12ECFB4C1852EADE0028E3A9 /* dmioem.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = dmioem.o; sourceTree = "<group>"; };
+		12ECFB4D1852EADE0028E3A9 /* dmiopt.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = dmiopt.c; sourceTree = "<group>"; };
+		12ECFB4E1852EADE0028E3A9 /* dmiopt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = dmiopt.h; sourceTree = "<group>"; };
+		12ECFB4F1852EADE0028E3A9 /* dmiopt.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = dmiopt.o; sourceTree = "<group>"; };
+		12ECFB501852EADE0028E3A9 /* LICENSE */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		12ECFB511852EADE0028E3A9 /* Makefile */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		12ECFB521852EADE0028E3A9 /* man */ = {isa = PBXFileReference; lastKnownFileType = folder; path = man; sourceTree = "<group>"; };
+		12ECFB531852EADE0028E3A9 /* ownership */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = ownership; sourceTree = "<group>"; };
+		12ECFB541852EADE0028E3A9 /* ownership.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ownership.c; sourceTree = "<group>"; };
+		12ECFB551852EADE0028E3A9 /* ownership.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = ownership.o; sourceTree = "<group>"; };
+		12ECFB561852EADE0028E3A9 /* README */ = {isa = PBXFileReference; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
+		12ECFB571852EADE0028E3A9 /* types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
+		12ECFB581852EADE0028E3A9 /* util.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = util.c; sourceTree = "<group>"; };
+		12ECFB591852EADE0028E3A9 /* util.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = util.h; sourceTree = "<group>"; };
+		12ECFB5A1852EADE0028E3A9 /* util.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = util.o; sourceTree = "<group>"; };
+		12ECFB5B1852EADE0028E3A9 /* version.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = version.h; sourceTree = "<group>"; };
+		12ECFB5C1852EADE0028E3A9 /* vpddecode */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = vpddecode; sourceTree = "<group>"; };
+		12ECFB5D1852EADE0028E3A9 /* vpddecode.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vpddecode.c; sourceTree = "<group>"; };
+		12ECFB5E1852EADE0028E3A9 /* vpddecode.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = vpddecode.o; sourceTree = "<group>"; };
+		12ECFB5F1852EADE0028E3A9 /* vpdopt.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = vpdopt.c; sourceTree = "<group>"; };
+		12ECFB601852EADE0028E3A9 /* vpdopt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = vpdopt.h; sourceTree = "<group>"; };
+		12ECFB611852EADE0028E3A9 /* vpdopt.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = vpdopt.o; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		12ECFB391852EADE0028E3A9 = {
+			isa = PBXGroup;
+			children = (
+				12ECFB3F1852EADE0028E3A9 /* .DS_Store */,
+				12ECFB401852EADE0028E3A9 /* AUTHORS */,
+				12ECFB411852EADE0028E3A9 /* biosdecode */,
+				12ECFB421852EADE0028E3A9 /* biosdecode.c */,
+				12ECFB431852EADE0028E3A9 /* biosdecode.o */,
+				12ECFB441852EADE0028E3A9 /* CHANGELOG */,
+				12ECFB451852EADE0028E3A9 /* config.h */,
+				12ECFB461852EADE0028E3A9 /* dmidecode */,
+				12ECFB471852EADE0028E3A9 /* dmidecode.c */,
+				12ECFB481852EADE0028E3A9 /* dmidecode.h */,
+				12ECFB491852EADE0028E3A9 /* dmidecode.o */,
+				12ECFB4A1852EADE0028E3A9 /* dmioem.c */,
+				12ECFB4B1852EADE0028E3A9 /* dmioem.h */,
+				12ECFB4C1852EADE0028E3A9 /* dmioem.o */,
+				12ECFB4D1852EADE0028E3A9 /* dmiopt.c */,
+				12ECFB4E1852EADE0028E3A9 /* dmiopt.h */,
+				12ECFB4F1852EADE0028E3A9 /* dmiopt.o */,
+				12ECFB501852EADE0028E3A9 /* LICENSE */,
+				12ECFB511852EADE0028E3A9 /* Makefile */,
+				12ECFB521852EADE0028E3A9 /* man */,
+				12ECFB531852EADE0028E3A9 /* ownership */,
+				12ECFB541852EADE0028E3A9 /* ownership.c */,
+				12ECFB551852EADE0028E3A9 /* ownership.o */,
+				12ECFB561852EADE0028E3A9 /* README */,
+				12ECFB571852EADE0028E3A9 /* types.h */,
+				12ECFB581852EADE0028E3A9 /* util.c */,
+				12ECFB591852EADE0028E3A9 /* util.h */,
+				12ECFB5A1852EADE0028E3A9 /* util.o */,
+				12ECFB5B1852EADE0028E3A9 /* version.h */,
+				12ECFB5C1852EADE0028E3A9 /* vpddecode */,
+				12ECFB5D1852EADE0028E3A9 /* vpddecode.c */,
+				12ECFB5E1852EADE0028E3A9 /* vpddecode.o */,
+				12ECFB5F1852EADE0028E3A9 /* vpdopt.c */,
+				12ECFB601852EADE0028E3A9 /* vpdopt.h */,
+				12ECFB611852EADE0028E3A9 /* vpdopt.o */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXLegacyTarget section */
+		12ECFB3E1852EADE0028E3A9 /* dmidecode-2.12 */ = {
+			isa = PBXLegacyTarget;
+			buildArgumentsString = "$(ACTION)";
+			buildConfigurationList = 12ECFB621852EADE0028E3A9 /* Build configuration list for PBXLegacyTarget "dmidecode-2.12" */;
+			buildPhases = (
+			);
+			buildToolPath = /usr/bin/make;
+			buildWorkingDirectory = "/Volumes/LionHD/Users/Slice/Projects/SmbiosTool/sources/dmidecode-2.12";
+			dependencies = (
+			);
+			name = "dmidecode-2.12";
+			passBuildSettingsInEnvironment = 1;
+			productName = "dmidecode-2.12";
+		};
+/* End PBXLegacyTarget section */
+
+/* Begin PBXProject section */
+		12ECFB3A1852EADE0028E3A9 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+			};
+			buildConfigurationList = 12ECFB3D1852EADE0028E3A9 /* Build configuration list for PBXProject "dmidecode-2.12" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 12ECFB391852EADE0028E3A9;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				12ECFB3E1852EADE0028E3A9 /* dmidecode-2.12 */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin XCBuildConfiguration section */
+		12ECFB3B1852EADE0028E3A9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COPY_PHASE_STRIP = NO;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx10.6;
+			};
+			name = Debug;
+		};
+		12ECFB3C1852EADE0028E3A9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				COPY_PHASE_STRIP = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				SDKROOT = macosx10.6;
+			};
+			name = Release;
+		};
+		12ECFB631852EADE0028E3A9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				DEBUGGING_SYMBOLS = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "dmidecode-2.12";
+			};
+			name = Debug;
+		};
+		12ECFB641852EADE0028E3A9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				OTHER_CFLAGS = "";
+				OTHER_LDFLAGS = "";
+				PRODUCT_NAME = "dmidecode-2.12";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		12ECFB3D1852EADE0028E3A9 /* Build configuration list for PBXProject "dmidecode-2.12" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				12ECFB3B1852EADE0028E3A9 /* Debug */,
+				12ECFB3C1852EADE0028E3A9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		12ECFB621852EADE0028E3A9 /* Build configuration list for PBXLegacyTarget "dmidecode-2.12" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				12ECFB631852EADE0028E3A9 /* Debug */,
+				12ECFB641852EADE0028E3A9 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 12ECFB3A1852EADE0028E3A9 /* Project object */;
+}

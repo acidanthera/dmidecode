@@ -1,0 +1,11 @@
+.DS_Store
+DerivedData
+*.o
+xcuserdata
+xcshareddata
+project.xcworkspace
+build
+dmidecode
+biosdecode
+ownership
+vpddecode
