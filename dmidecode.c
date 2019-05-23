@@ -4281,12 +4281,18 @@ static void dmi_decode(const struct dmi_header *h, u16 ver)
 			printf("Apple specific Processor Type\n");
 			printf("\t cpu=%04x\n", WORD(data+4));
 			break;
-			
 		case 132:
 			printf("Apple specific Processor Interconnect Speed\n");
 			printf("\t %d MT/s\n", WORD(data+4));
 			break;
-			
+		case 133:
+			printf("Apple specific PlatformFeature\n");
+			printf("\t 0x%x\n", DWORD(data+4));
+			break;
+		case 134:
+			printf("Apple specific SmcVersion\n");
+			printf("\t %.16s\n", (const char*)data+4);
+			break;
 
 		default:
 			if (dmi_decode_oem(h))
