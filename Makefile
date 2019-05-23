@@ -4,7 +4,7 @@
 #   VPD Decode
 #
 #   Copyright (C) 2000-2002 Alan Cox <alan@redhat.com>
-#   Copyright (C) 2002-2007 Jean Delvare <khali@linux-fr.org>
+#   Copyright (C) 2002-2015 Jean Delvare <jdelvare@suse.de>
 #
 #   This program is free software; you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -15,6 +15,10 @@
 CC      = gcc
 CFLAGS  = -W -Wall -Wshadow -Wstrict-prototypes -Wpointer-arith -Wcast-qual \
           -Wcast-align -Wwrite-strings -Wmissing-prototypes -Winline -Wundef
+
+# Let lseek and mmap support 64-bit wide offsets
+CFLAGS += -D_FILE_OFFSET_BITS=64
+
 #CFLAGS += -DBIGENDIAN
 #CFLAGS += -DALIGNMENT_WORKAROUND
 
@@ -136,7 +140,7 @@ uninstall-man :
 install-doc :
 	$(INSTALL_DIR) $(DESTDIR)$(docdir)
 	$(INSTALL_DATA) README $(DESTDIR)$(docdir)
-	$(INSTALL_DATA) CHANGELOG $(DESTDIR)$(docdir)
+	$(INSTALL_DATA) NEWS $(DESTDIR)$(docdir)
 	$(INSTALL_DATA) AUTHORS $(DESTDIR)$(docdir)
 
 uninstall-doc :

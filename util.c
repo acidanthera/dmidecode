@@ -2,7 +2,7 @@
  * Common "util" functions
  * This file is part of the dmidecode project.
  *
- *   Copyright (C) 2002-2010 Jean Delvare <khali@linux-fr>
+ *   Copyright (C) 2002-2018 Jean Delvare <jdelvare@suse.de>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -64,7 +64,6 @@ static int myread(int fd, u8 *buf, size_t count, const char *prefix)
 		{
 			if (errno != EINTR)
 			{
-				close(fd);
 				perror(prefix);
 				return -1;
 			}
@@ -75,7 +74,6 @@ static int myread(int fd, u8 *buf, size_t count, const char *prefix)
 
 	if (r2 != count)
 	{
-		close(fd);
 		fprintf(stderr, "%s: Unexpected end of file\n", prefix);
 		return -1;
 	}
@@ -93,7 +91,76 @@ int checksum(const u8 *buf, size_t len)
 	return (sum == 0);
 }
 
-static void *mem_chunk_ioreg(size_t base, size_t len)
+/*
+ * Reads all of file from given offset, up to max_len bytes.
+ * A buffer of at most max_len bytes is allocated by this function, and
+ * needs to be freed by the caller.
+ * This provides a similar usage model to mem_chunk()
+ *
+ * Returns a pointer to the allocated buffer, or NULL on error, and
+ * sets max_len to the length actually read.
+ */
+void *read_file(off_t base, size_t *max_len, const char *filename)
+{
+	struct stat statbuf;
+	int fd;
+	u8 *p;
+
+	/*
+	 * Don't print error message on missing file, as we will try to read
+	 * files that may or may not be present.
+	 */
+	if ((fd = open(filename, O_RDONLY)) == -1)
+	{
+		if (errno != ENOENT)
+			perror(filename);
+		return NULL;
+	}
+
+	/*
+	 * Check file size, don't allocate more than can be read.
+	 */
+	if (fstat(fd, &statbuf) == 0)
+	{
+		if (base >= statbuf.st_size)
+		{
+			fprintf(stderr, "%s: Can't read data beyond EOF\n",
+				filename);
+			p = NULL;
+			goto out;
+		}
+		if (*max_len > (size_t)statbuf.st_size - base)
+			*max_len = statbuf.st_size - base;
+	}
+
+	if ((p = malloc(*max_len)) == NULL)
+	{
+		perror("malloc");
+		goto out;
+	}
+
+	if (lseek(fd, base, SEEK_SET) == -1)
+	{
+		fprintf(stderr, "%s: ", filename);
+		perror("lseek");
+		goto err_free;
+	}
+
+	if (myread(fd, p, *max_len, filename) == 0)
+		goto out;
+
+err_free:
+	free(p);
+	p = NULL;
+
+out:
+	if (close(fd) == -1)
+		perror(filename);
+
+	return p;
+}
+
+static void *mem_chunk_ioreg(off_t base, size_t len)
 {
 #ifdef __APPLE__
 	CFDataRef data;
@@ -156,12 +223,13 @@ static void *mem_chunk_ioreg(size_t base, size_t len)
  * Copy a physical memory chunk into a memory buffer.
  * This function allocates memory.
  */
-void *mem_chunk(size_t base, size_t len, const char *devmem)
+void *mem_chunk(off_t base, size_t len, const char *devmem)
 {
 	void *p;
 	int fd;
 #ifdef USE_MMAP
-	size_t mmoffset;
+	struct stat statbuf;
+	off_t mmoffset;
 	void *mmp;
 #endif
 
@@ -178,10 +246,28 @@ void *mem_chunk(size_t base, size_t len, const char *devmem)
 	if ((p = malloc(len)) == NULL)
 	{
 		perror("malloc");
-		return NULL;
+		goto out;
 	}
 
 #ifdef USE_MMAP
+	if (fstat(fd, &statbuf) == -1)
+	{
+		fprintf(stderr, "%s: ", devmem);
+		perror("stat");
+		goto err_free;
+	}
+
+	/*
+	 * mmap() will fail with SIGBUS if trying to map beyond the end of
+	 * the file.
+	 */
+	if (S_ISREG(statbuf.st_mode) && base + (off_t)len > statbuf.st_size)
+	{
+		fprintf(stderr, "mmap: Can't map beyond end of file %s\n",
+			devmem);
+		goto err_free;
+	}
+
 #ifdef _SC_PAGESIZE
 	mmoffset = base % sysconf(_SC_PAGESIZE);
 #else
@@ -192,7 +278,7 @@ void *mem_chunk(size_t base, size_t len, const char *devmem)
 	 * but to workaround problems many people encountered when trying
 	 * to read from /dev/mem using regular read() calls.
 	 */
-	mmp = mmap(0, mmoffset + len, PROT_READ, MAP_SHARED, fd, base - mmoffset);
+	mmp = mmap(NULL, mmoffset + len, PROT_READ, MAP_SHARED, fd, base - mmoffset);
 	if (mmp == MAP_FAILED)
 		goto try_read;
 
@@ -206,22 +292,21 @@ void *mem_chunk(size_t base, size_t len, const char *devmem)
 
 	goto out;
 
-#endif /* USE_MMAP */
-
 try_read:
+#endif /* USE_MMAP */
 	if (lseek(fd, base, SEEK_SET) == -1)
 	{
 		fprintf(stderr, "%s: ", devmem);
 		perror("lseek");
-		free(p);
-		return NULL;
+		goto err_free;
 	}
 
-	if (myread(fd, p, len, devmem) == -1)
-	{
-		free(p);
-		return NULL;
-	}
+	if (myread(fd, p, len, devmem) == 0)
+		goto out;
+
+err_free:
+	free(p);
+	p = NULL;
 
 out:
 	if (close(fd) == -1)

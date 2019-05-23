@@ -2,7 +2,7 @@
  * Command line handling of vpddecode
  * This file is part of the dmidecode project.
  *
- *   Copyright (C) 2005-2007 Jean Delvare <khali@linux-fr.org>
+ *   Copyright (C) 2005-2007 Jean Delvare <jdelvare@suse.de>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -99,7 +99,7 @@ int parse_command_line(int argc, char * const argv[])
 		{ "string", required_argument, NULL, 's' },
 		{ "dump", no_argument, NULL, 'u' },
 		{ "version", no_argument, NULL, 'V' },
-		{ 0, 0, 0, 0 }
+		{ NULL, 0, NULL, 0 }
 	};
 
 	while ((option = getopt_long(argc, argv, optstring, longopts, NULL)) != -1)

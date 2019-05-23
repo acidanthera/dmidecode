@@ -1,7 +1,7 @@
 /*
  * Compaq Ownership Tag
  *
- *   Copyright (C) 2003-2005 Jean Delvare <khali@linux-fr.org>
+ *   Copyright (C) 2003-2005 Jean Delvare <jdelvare@suse.de>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -119,7 +119,7 @@ static int parse_command_line(int argc, char * const argv[])
 		{ "dev-mem", required_argument, NULL, 'd' },
 		{ "help", no_argument, NULL, 'h' },
 		{ "version", no_argument, NULL, 'V' },
-		{ 0, 0, 0, 0 }
+		{ NULL, 0, NULL, 0 }
 	};
 
 	while ((option = getopt_long(argc, argv, optstring, longopts, NULL)) != -1)

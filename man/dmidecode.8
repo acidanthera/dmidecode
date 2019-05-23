@@ -25,8 +25,12 @@ and developed by the \s-1DMTF\s0 (Desktop Management Task Force).
 
 As you run it,
 .B dmidecode
-will try to locate the \s-1DMI\s0 table. If it succeeds, it will then parse
-this table and display a list of records like this one:
+will try to locate the \s-1DMI\s0 table. It will first try to read the DMI table
+from sysfs, and next try reading directly from memory if sysfs access failed.
+If
+.B dmidecode
+succeeds in locating a valid DMI table, it will then parse this table
+and display a list of records like this one:
 
 Handle 0x0002, DMI type 2, 8 bytes.
 Base Board Information
@@ -70,7 +74,7 @@ Only display the value of the \s-1DMI\s0 string identified by \fBKEYWORD\fR.
 \fBbios-version\fR, \fBbios-release-date\fR,
 \fBsystem-manufacturer\fR, \fBsystem-product-name\fR,
 \fBsystem-version\fR, \fBsystem-serial-number\fR,
-\fBsystem-uuid\fR,
+\fBsystem-uuid\fR, \fBsystem-family\fR,
 \fBbaseboard-manufacturer\fR, \fBbaseboard-product-name\fR,
 \fBbaseboard-version\fR, \fBbaseboard-serial-number\fR,
 \fBbaseboard-asset-tag\fR, \fBchassis-manufacturer\fR,
@@ -89,6 +93,13 @@ keywords is printed and
 .B dmidecode
 exits with an error.
 This option cannot be used more than once.
+
+Note: on Linux, most of these strings can alternatively be read directly
+from
+.BR sysfs ,
+typically from files under
+.IR /sys/devices/virtual/dmi/id .
+Most of these files are even readable by regular users.
 .TP
 .BR "-t" ", " "--type TYPE"
 Only display the entries of type \fBTYPE\fR. \fBTYPE\fR can be either a
@@ -103,6 +114,10 @@ If \fBTYPE\fR is not provided or not valid, a list of all valid keywords
 is printed and
 .B dmidecode
 exits with an error.
+.TP
+.BR "-H" ", " "--handle HANDLE"
+Only display the entry whose handle matches \fBHANDLE\fR.  \fBHANDLE\fR
+is a 16-bit integer.
 .TP
 .BR "-u" ", " "--dump"
 Do not decode the entries, dump their contents as hexadecimal instead.
@@ -119,13 +134,22 @@ later.
 Read the DMI data from a binary file previously generated using 
 \fB--dump-bin\fR.
 .TP
+.BR "  " "  " "--no-sysfs"
+Do not attempt to read DMI data from sysfs files. This is mainly useful for
+debugging.
+.TP
+.BR "  " "  " "--oem-string N"
+Only display the value of the \s-1OEM\s0 string number \fBN\fR. The first
+\s-1OEM\s0 string has number 1. With special value "count", return the
+number of OEM strings instead.
+.TP
 .BR "-h" ", " "--help"
 Display usage information and exit
 .TP
 .BR "-V" ", " "--version"
 Display the version and exit
 .P
-Options --string, --type and --dump-bin
+Options --string, --type, --dump-bin and --oem-string
 determine the output format and are mutually exclusive.
 .P
 Please note in case of
@@ -234,6 +258,8 @@ The DMI table is located at offset 0x20.
 
 .SH FILES
 .I /dev/mem
+.I /sys/firmware/dmi/tables/smbios_entry_point (Linux only)
+.I /sys/firmware/dmi/tables/DMI (Linux only)
 .SH BUGS
 More often than not, information contained in the \s-1DMI\s0 tables is inaccurate,
 incomplete or simply wrong.

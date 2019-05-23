@@ -2,7 +2,7 @@
  * Command line handling of dmidecode
  * This file is part of the dmidecode project.
  *
- *   Copyright (C) 2005-2008 Jean Delvare <khali@linux-fr.org>
+ *   Copyright (C) 2005-2008 Jean Delvare <jdelvare@suse.de>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 #include <strings.h>
 #include <stdlib.h>
 #include <getopt.h>
@@ -112,7 +113,7 @@ static u8 *parse_opt_type(u8 *p, const char *arg)
 		char *next;
 
 		val = strtoul(arg, &next, 0);
-		if (next == arg)
+		if (next == arg || (*next != '\0' && *next != ',' && *next != ' '))
 		{
 			fprintf(stderr, "Invalid type keyword: %s\n", arg);
 			print_opt_type_list();
@@ -155,6 +156,7 @@ static const struct string_keyword opt_string_keyword[] = {
 	{ "system-version", 1, 0x06 },
 	{ "system-serial-number", 1, 0x07 },
 	{ "system-uuid", 1, 0x08 },             /* dmi_system_uuid() */
+	{ "system-family", 1, 0x1a },
 	{ "baseboard-manufacturer", 2, 0x04 },
 	{ "baseboard-product-name", 2, 0x05 },
 	{ "baseboard-version", 2, 0x06 },
@@ -170,6 +172,10 @@ static const struct string_keyword opt_string_keyword[] = {
 	{ "processor-version", 4, 0x10 },
 	{ "processor-frequency", 4, 0x16 },     /* dmi_processor_frequency() */
 };
+
+/* This is a template, 3rd field is set at runtime. */
+static struct string_keyword opt_oem_string_keyword =
+	{ NULL, 11, 0x00 };
 
 static void print_opt_string_list(void)
 {
@@ -206,6 +212,47 @@ static int parse_opt_string(const char *arg)
 	return -1;
 }
 
+static int parse_opt_oem_string(const char *arg)
+{
+	unsigned long val;
+	char *next;
+
+	if (opt.string)
+	{
+		fprintf(stderr, "Only one string can be specified\n");
+		return -1;
+	}
+
+	/* Return the number of OEM strings */
+	if (strcmp(arg, "count") == 0)
+		goto done;
+
+	val = strtoul(arg, &next, 10);
+	if (next == arg  || *next != '\0' || val == 0x00 || val > 0xff)
+	{
+		fprintf(stderr, "Invalid OEM string number: %s\n", arg);
+		return -1;
+	}
+
+	opt_oem_string_keyword.offset = val;
+done:
+	opt.string = &opt_oem_string_keyword;
+	return 0;
+}
+
+static u32 parse_opt_handle(const char *arg)
+{
+	u32 val;
+	char *next;
+
+	val = strtoul(arg, &next, 0);
+	if (next == arg || *next != '\0' || val > 0xffff)
+	{
+		fprintf(stderr, "Invalid handle number: %s\n", arg);
+		return ~0;
+	}
+	return val;
+}
 
 /*
  * Command line options handling
@@ -215,7 +262,7 @@ static int parse_opt_string(const char *arg)
 int parse_command_line(int argc, char * const argv[])
 {
 	int option;
-	const char *optstring = "d:hqs:t:uVi:";
+	const char *optstring = "d:hqs:t:uH:Vi:";
 	struct option longopts[] = {
 		{ "dev-mem", required_argument, NULL, 'd' },
 		{ "input-file", required_argument, NULL, 'i' },
@@ -226,8 +273,11 @@ int parse_command_line(int argc, char * const argv[])
 		{ "dump", no_argument, NULL, 'u' },
 		{ "dump-bin", required_argument, NULL, 'B' },
 		{ "from-dump", required_argument, NULL, 'F' },
+		{ "handle", required_argument, NULL, 'H' },
+		{ "oem-string", required_argument, NULL, 'O' },
+		{ "no-sysfs", no_argument, NULL, 'S' },
 		{ "version", no_argument, NULL, 'V' },
-		{ 0, 0, 0, 0 }
+		{ NULL, 0, NULL, 0 }
 	};
 
 	while ((option = getopt_long(argc, argv, optstring, longopts, NULL)) != -1)
@@ -259,13 +309,26 @@ int parse_command_line(int argc, char * const argv[])
 					return -1;
 				opt.flags |= FLAG_QUIET;
 				break;
+			case 'O':
+				if (parse_opt_oem_string(optarg) < 0)
+					return -1;
+				opt.flags |= FLAG_QUIET;
+				break;
 			case 't':
 				opt.type = parse_opt_type(opt.type, optarg);
 				if (opt.type == NULL)
 					return -1;
 				break;
+			case 'H':
+				opt.handle = parse_opt_handle(optarg);
+				if (opt.handle  == ~0U)
+					return -1;
+				break;
 			case 'u':
 				opt.flags |= FLAG_DUMP;
+				break;
+			case 'S':
+				opt.flags |= FLAG_NO_SYSFS;
 				break;
 			case 'V':
 				opt.flags |= FLAG_VERSION;
@@ -287,9 +350,9 @@ int parse_command_line(int argc, char * const argv[])
 
 	/* Check for mutually exclusive output format options */
 	if ((opt.string != NULL) + (opt.type != NULL)
-	  + !!(opt.flags & FLAG_DUMP_BIN) > 1)
+	  + !!(opt.flags & FLAG_DUMP_BIN) + (opt.handle != ~0U) > 1)
 	{
-		fprintf(stderr, "Options --string, --type and --dump-bin are mutually exclusive\n");
+		fprintf(stderr, "Options --string, --type, --handle and --dump-bin are mutually exclusive\n");
 		return -1;
 	}
 
@@ -313,9 +376,12 @@ void print_help(void)
 		" -q, --quiet            Less verbose output\n"
 		" -s, --string KEYWORD   Only display the value of the given DMI string\n"
 		" -t, --type TYPE        Only display the entries of given type\n"
+		" -H, --handle HANDLE    Only display the entry of given handle\n"
 		" -u, --dump             Do not decode the entries\n"
 		"     --dump-bin FILE    Dump the DMI data to a binary file\n"
 		"     --from-dump FILE   Read the DMI data from a binary file\n"
+		"     --no-sysfs         Do not attempt to read DMI data from sysfs files\n"
+		"     --oem-string N     Only display the value of the given OEM string\n"
 		" -V, --version          Display the version and exit\n";
 
 	printf("%s", help);

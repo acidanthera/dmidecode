@@ -52,13 +52,16 @@ for a more detailed output.
 .B biosdecode
 started its life as a part of
 .B dmidecode
-but as more entry point types were added, if was moved to a different
+but as more entry point types were added, it was moved to a different
 program.
 
 .SH OPTIONS
 .TP
 .BR "-d" ", " "--dev-mem FILE"
 Read memory from device \fBFILE\fR (default: \fB/dev/mem\fR)
+.TP
+.BR "  " "  " "--pir full"
+Decode the details of the PCI IRQ routing table
 .TP
 .BR "-h" ", " "--help"
 Display usage information and exit

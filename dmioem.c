@@ -2,7 +2,7 @@
  * Decoding of OEM-specific entries
  * This file is part of the dmidecode project.
  *
- *   Copyright (C) 2007-2008 Jean Delvare <khali@linux-fr.org>
+ *   Copyright (C) 2007-2008 Jean Delvare <jdelvare@suse.de>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -30,7 +30,15 @@
  * Globals for vendor-specific decodes
  */
 
-enum DMI_VENDORS { VENDOR_UNKNOWN, VENDOR_HP };
+enum DMI_VENDORS
+{
+	VENDOR_UNKNOWN,
+	VENDOR_ACER,
+	VENDOR_HP,
+	VENDOR_HPE,
+	VENDOR_IBM,
+	VENDOR_LENOVO,
+};
 
 static enum DMI_VENDORS dmi_vendor = VENDOR_UNKNOWN;
 
@@ -41,28 +49,115 @@ static enum DMI_VENDORS dmi_vendor = VENDOR_UNKNOWN;
  */
 void dmi_set_vendor(const char *s)
 {
-	if (strcmp(s, "HP") == 0 || strcmp(s, "Hewlett-Packard") == 0)
+	int len;
+
+	/*
+	 * Often DMI strings have trailing spaces. Ignore these
+	 * when checking for known vendor names.
+	 */
+	len = strlen(s);
+	while (len && s[len - 1] == ' ')
+		len--;
+
+	if (strncmp(s, "Acer", len) == 0)
+		dmi_vendor = VENDOR_ACER;
+	else if (strncmp(s, "HP", len) == 0 || strncmp(s, "Hewlett-Packard", len) == 0)
 		dmi_vendor = VENDOR_HP;
+	else if (strncmp(s, "HPE", len) == 0 || strncmp(s, "Hewlett Packard Enterprise", len) == 0)
+		dmi_vendor = VENDOR_HPE;
+	else if (strncmp(s, "IBM", len) == 0)
+		dmi_vendor = VENDOR_IBM;
+	else if (strncmp(s, "LENOVO", len) == 0)
+		dmi_vendor = VENDOR_LENOVO;
 }
 
 /*
- * HP-specific data structures are decoded here.
- *
- * Code contributed by John Cagle.
+ * Acer-specific data structures are decoded here.
  */
+
+static int dmi_decode_acer(const struct dmi_header *h)
+{
+	u8 *data = h->data;
+	u16 cap;
+
+	switch (h->type)
+	{
+		case 170:
+			/*
+			 * Vendor Specific: Acer Hotkey Function
+			 *
+			 * Source: acer-wmi kernel driver
+			 *
+			 * Probably applies to some laptop models of other
+			 * brands, including Fujitsu-Siemens, Medion, Lenovo,
+			 * and eMachines.
+			 */
+			printf("Acer Hotkey Function\n");
+			if (h->length < 0x0F) break;
+			cap = WORD(data + 0x04);
+			printf("\tFunction bitmap for Communication Button: 0x%04hx\n", cap);
+			printf("\t\tWiFi: %s\n", cap & 0x0001 ? "Yes" : "No");
+			printf("\t\t3G: %s\n", cap & 0x0040 ? "Yes" : "No");
+			printf("\t\tWiMAX: %s\n", cap & 0x0080 ? "Yes" : "No");
+			printf("\t\tBluetooth: %s\n", cap & 0x0800 ? "Yes" : "No");
+			printf("\tFunction bitmap for Application Button: 0x%04hx\n", WORD(data + 0x06));
+			printf("\tFunction bitmap for Media Button: 0x%04hx\n", WORD(data + 0x08));
+			printf("\tFunction bitmap for Display Button: 0x%04hx\n", WORD(data + 0x0A));
+			printf("\tFunction bitmap for Others Button: 0x%04hx\n", WORD(data + 0x0C));
+			printf("\tCommunication Function Key Number: %d\n", data[0x0E]);
+			break;
+
+		default:
+			return 0;
+	}
+	return 1;
+}
+
+/*
+ * HPE-specific data structures are decoded here.
+ *
+ * Code contributed by John Cagle and Tyler Bell.
+ */
+
+static void dmi_print_hp_net_iface_rec(u8 id, u8 bus, u8 dev, const u8 *mac)
+{
+	/* Some systems do not provide an id. nic_ctr provides an artificial
+	 * id, and assumes the records will be provided "in order".  Also,
+	 * using 0xFF marker is not future proof. 256 NICs is a lot, but
+	 * 640K ought to be enough for anybody(said no one, ever).
+	 * */
+	static u8 nic_ctr;
+
+	if (id == 0xFF)
+		id = ++nic_ctr;
+
+	if (dev == 0x00 && bus == 0x00)
+		printf("\tNIC %d: Disabled\n", id);
+	else if (dev == 0xFF && bus == 0xFF)
+		printf("\tNIC %d: Not Installed\n", id);
+	else
+	{
+		printf("\tNIC %d: PCI device %02x:%02x.%x, "
+			"MAC address %02X:%02X:%02X:%02X:%02X:%02X\n",
+			id, bus, dev >> 3, dev & 7,
+			mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
+	}
+}
 
 static int dmi_decode_hp(const struct dmi_header *h)
 {
 	u8 *data = h->data;
 	int nic, ptr;
+	u32 feat;
+	const char *company = (dmi_vendor == VENDOR_HP) ? "HP" : "HPE";
 
 	switch (h->type)
 	{
 		case 204:
 			/*
-			 * Vendor Specific: HP ProLiant System/Rack Locator
+			 * Vendor Specific: HPE ProLiant System/Rack Locator
 			 */
-			printf("HP ProLiant System/Rack Locator\n");
+			printf("%s ProLiant System/Rack Locator\n", company);
 			if (h->length < 0x0B) break;
 			printf("\tRack Name: %s\n", dmi_string(h, data[0x04]));
 			printf("\tEnclosure Name: %s\n", dmi_string(h, data[0x05]));
@@ -76,35 +171,228 @@ static int dmi_decode_hp(const struct dmi_header *h)
 		case 209:
 		case 221:
 			/*
-			 * Vendor Specific: HP ProLiant NIC MAC Information
+			 * Vendor Specific: HPE ProLiant NIC MAC Information
 			 *
 			 * This prints the BIOS NIC number,
 			 * PCI bus/device/function, and MAC address
+			 *
+			 * Type 209:
+			 * Offset |  Name  | Width | Description
+			 * -------------------------------------
+			 *  0x00  |  Type  | BYTE  | 0xD1, MAC Info
+			 *  0x01  | Length | BYTE  | Length of structure
+			 *  0x02  | Handle | WORD  | Unique handle
+			 *  0x04  | Dev No | BYTE  | PCI Device/Function No
+			 *  0x05  | Bus No | BYTE  | PCI Bus
+			 *  0x06  |   MAC  | 6B    | MAC addr
+			 *  0x0C  | NIC #2 | 8B    | Repeat 0x04-0x0B
+			 *
+			 * Type 221: is deprecated in the latest docs
 			 */
-			printf(h->type == 221 ?
-				"HP BIOS iSCSI NIC PCI and MAC Information\n" :
-				"HP BIOS PXE NIC PCI and MAC Information\n");
+			printf("%s %s\n", company,
+				h->type == 221 ?
+					"BIOS iSCSI NIC PCI and MAC Information" :
+					"BIOS PXE NIC PCI and MAC Information");
 			nic = 1;
 			ptr = 4;
 			while (h->length >= ptr + 8)
 			{
-				if (data[ptr] == 0x00 && data[ptr + 1] == 0x00)
-					printf("\tNIC %d: Disabled\n", nic);
-				else if (data[ptr] == 0xFF && data[ptr + 1] == 0xFF)
-					printf("\tNIC %d: Not Installed\n", nic);
-				else
-				{
-					printf("\tNIC %d: PCI device %02x:%02x.%x, "
-						"MAC address %02X:%02X:%02X:%02X:%02X:%02X\n",
-						nic, data[ptr + 1],
-						data[ptr] >> 3, data[ptr] & 7,
-						data[ptr + 2], data[ptr + 3],
-						data[ptr + 4], data[ptr + 5],
-						data[ptr + 6], data[ptr + 7]);
-				}
+				dmi_print_hp_net_iface_rec(nic,
+							   data[ptr + 0x01],
+							   data[ptr],
+							   &data[ptr + 0x02]);
 				nic++;
 				ptr += 8;
 			}
+			break;
+
+		case 233:
+			/*
+			 * Vendor Specific: HPE ProLiant NIC MAC Information
+			 *
+			 * This prints the BIOS NIC number,
+			 * PCI bus/device/function, and MAC address
+			 *
+			 * Offset |  Name  | Width | Description
+			 * -------------------------------------
+			 *  0x00  |  Type  | BYTE  | 0xE9, NIC structure
+			 *  0x01  | Length | BYTE  | Length of structure
+			 *  0x02  | Handle | WORD  | Unique handle
+			 *  0x04  | Grp No | WORD  | 0 for single segment
+			 *  0x06  | Bus No | BYTE  | PCI Bus
+			 *  0x07  | Dev No | BYTE  | PCI Device/Function No
+			 *  0x08  |   MAC  | 32B   | MAC addr padded w/ 0s
+			 *  0x28  | Port No| BYTE  | Each NIC maps to a Port
+			 */
+			printf("%s BIOS PXE NIC PCI and MAC Information\n", company);
+			if (h->length < 0x0E) break;
+			/* If the record isn't long enough, we don't have an ID
+			 * use 0xFF to use the internal counter.
+			 * */
+			nic = h->length > 0x28 ? data[0x28] : 0xFF;
+			dmi_print_hp_net_iface_rec(nic, data[0x06], data[0x07],
+						   &data[0x08]);
+			break;
+
+		case 212:
+			/*
+			 * Vendor Specific: HPE 64-bit CRU Information
+			 *
+			 * Source: hpwdt kernel driver
+			 */
+			printf("%s 64-bit CRU Information\n", company);
+			if (h->length < 0x18) break;
+			printf("\tSignature: 0x%08x", DWORD(data + 0x04));
+			if (is_printable(data + 0x04, 4))
+				printf(" (%c%c%c%c)", data[0x04], data[0x05],
+					data[0x06], data[0x07]);
+			printf("\n");
+			if (DWORD(data + 0x04) == 0x55524324)
+			{
+				u64 paddr = QWORD(data + 0x08);
+				paddr.l += DWORD(data + 0x14);
+				if (paddr.l < DWORD(data + 0x14))
+					paddr.h++;
+				printf("\tPhysical Address: 0x%08x%08x\n",
+					paddr.h, paddr.l);
+				printf("\tLength: 0x%08x\n", DWORD(data + 0x10));
+			}
+			break;
+
+		case 219:
+			/*
+			 * Vendor Specific: HPE ProLiant Information
+			 *
+			 * Source: hpwdt kernel driver
+			 */
+			printf("%s ProLiant Information\n", company);
+			if (h->length < 0x08) break;
+			printf("\tPower Features: 0x%08x\n", DWORD(data + 0x04));
+			if (h->length < 0x0C) break;
+			printf("\tOmega Features: 0x%08x\n", DWORD(data + 0x08));
+			if (h->length < 0x14) break;
+			feat = DWORD(data + 0x10);
+			printf("\tMisc. Features: 0x%08x\n", feat);
+			printf("\t\tiCRU: %s\n", feat & 0x0001 ? "Yes" : "No");
+			printf("\t\tUEFI: %s\n", feat & 0x1400 ? "Yes" : "No");
+			break;
+
+		default:
+			return 0;
+	}
+	return 1;
+}
+
+static int dmi_decode_ibm_lenovo(const struct dmi_header *h)
+{
+	u8 *data = h->data;
+
+	switch (h->type)
+	{
+		case 131:
+			/*
+			 * Vendor Specific: ThinkVantage Technologies feature bits
+			 *
+			 * Source: Compal hel81 Service Manual Software Specification,
+			 *         documented under "System Management BIOS(SM BIOS)
+			 *         version 2.4 or greater"
+			 *
+			 * Offset |  Name         | Width   | Description
+			 * ----------------------------------------------
+			 *  0x00  | Type          | BYTE    | 0x83
+			 *  0x01  | Length        | BYTE    | 0x16
+			 *  0x02  | Handle        | WORD    | Varies
+			 *  0x04  | Version       | BYTE    | 0x01
+			 *  0x05  | TVT Structure | BYTEx16 | Each of the 128 bits represents a TVT feature:
+			 *        |               |         |  - bit 127 means diagnostics (PC Doctor) is available
+			 *        |               |         |    (http://www.pc-doctor.com/company/pr-articles/45-lenovo-introduces-thinkvantage-toolbox)
+			 *        |               |         |  - the rest (126-0) are reserved/unknown
+			 *
+			 * It must also be followed by a string containing
+			 * "TVT-Enablement". There exist other type 131 records
+			 * with different length and a different string, for
+			 * other purposes.
+			 */
+
+			if (h->length != 0x16
+			 || strcmp(dmi_string(h, 1), "TVT-Enablement") != 0)
+				return 0;
+
+			printf("ThinkVantage Technologies\n");
+			printf("\tVersion: %u\n", data[0x04]);
+			printf("\tDiagnostics: %s\n",
+				data[0x14] & 0x80 ? "Available" : "No");
+			break;
+
+		case 135:
+			/*
+			 * Vendor Specific: Device Presence Detection bits
+			 *
+			 * Source: Compal hel81 Service Manual Software Specification,
+			 *         documented as "SMBIOS Type 135: Bulk for Lenovo
+			 *         Mobile PC Unique OEM Data" under appendix D.
+			 *
+			 * Offset |  Name                | Width | Description
+			 * ---------------------------------------------------
+			 *  0x00  | Type                 | BYTE  | 0x87
+			 *  0x01  | Length               | BYTE  | 0x0A
+			 *  0x02  | Handle               | WORD  | Varies
+			 *  0x04  | Signature            | WORD  | 0x5054 (ASCII for "TP")
+			 *  0x06  | OEM struct offset    | BYTE  | 0x07
+			 *  0x07  | OEM struct number    | BYTE  | 0x03, for this structure
+			 *  0x08  | OEM struct revision  | BYTE  | 0x01, for this format
+			 *  0x09  | Device presence bits | BYTE  | Each of the 8 bits indicates device presence:
+			 *        |                      |       |  - bit 0 indicates the presence of a fingerprint reader
+			 *        |                      |       |  - the rest (7-1) are reserved/unknown
+			 *
+			 * Other OEM struct number+rev combinations have been
+			 * seen in the wild but we don't know how to decode
+			 * them.
+			 */
+
+			if (h->length < 0x0A || data[0x04] != 'T' || data[0x05] != 'P')
+				return 0;
+
+			/* Bail out if not the expected format */
+			if (data[0x06] != 0x07 || data[0x07] != 0x03 || data[0x08] != 0x01)
+				return 0;
+
+			printf("ThinkPad Device Presence Detection\n");
+			printf("\tFingerprint Reader: %s\n",
+				data[0x09] & 0x01 ? "Present" : "No");
+			break;
+
+		case 140:
+			/*
+			 * Vendor Specific: ThinkPad Embedded Controller Program
+			 *
+			 * Source: some guesswork, and publicly available information;
+			 *         Lenovo's BIOS update READMEs often contain the ECP IDs
+			 *         which match the first string in this type.
+			 *
+			 * Offset |  Name                | Width  | Description
+			 * ----------------------------------------------------
+			 *  0x00  | Type                 | BYTE   | 0x8C
+			 *  0x01  | Length               | BYTE   |
+			 *  0x02  | Handle               | WORD   | Varies
+			 *  0x04  | Signature            | BYTEx6 | ASCII for "LENOVO"
+			 *  0x0A  | OEM struct offset    | BYTE   | 0x0B
+			 *  0x0B  | OEM struct number    | BYTE   | 0x07, for this structure
+			 *  0x0C  | OEM struct revision  | BYTE   | 0x01, for this format
+			 *  0x0D  | ECP version ID       | STRING |
+			 *  0x0E  | ECP release date     | STRING |
+			 */
+
+			if (h->length < 0x0F || memcmp(data + 4, "LENOVO", 6) != 0)
+				return 0;
+
+			/* Bail out if not the expected format */
+			if (data[0x0A] != 0x0B || data[0x0B] != 0x07 || data[0x0C] != 0x01)
+				return 0;
+
+			printf("ThinkPad Embedded Controller Program\n");
+			printf("\tVersion ID: %s\n", dmi_string(h, 1));
+			printf("\tRelease Date: %s\n", dmi_string(h, 2));
 			break;
 
 		default:
@@ -122,7 +410,13 @@ int dmi_decode_oem(const struct dmi_header *h)
 	switch (dmi_vendor)
 	{
 		case VENDOR_HP:
+		case VENDOR_HPE:
 			return dmi_decode_hp(h);
+		case VENDOR_ACER:
+			return dmi_decode_acer(h);
+		case VENDOR_IBM:
+		case VENDOR_LENOVO:
+			return dmi_decode_ibm_lenovo(h);
 		default:
 			return 0;
 	}
