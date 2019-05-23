@@ -1,3 +1,8 @@
+** ACIDANTHERA NOTES **
+
+This dmidecode version supports Apple-specific table decoding as well
+as native macOS SMBIOS reading through I/O Registry.
+
 ** INTRODUCTION **
 
 Dmidecode reports information about your system's hardware as described in

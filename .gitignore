@@ -1,6 +1,7 @@
 .DS_Store
 DerivedData
 *.o
+*.zip
 xcuserdata
 xcshareddata
 project.xcworkspace
