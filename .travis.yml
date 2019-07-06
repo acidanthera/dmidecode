@@ -7,7 +7,7 @@ matrix:
 
     script:
       - make
-      - zip -qry dmidecode-mac-$(cat version.h | cut -f2 -d'"').zip dmidecode
+      - zip -qry -FS dmidecode-mac-$(cat version.h | cut -f2 -d'"').zip dmidecode
 
     deploy:
       provider: releases
