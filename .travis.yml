@@ -3,6 +3,8 @@ language: cpp
 matrix:
   include:
   - os: osx
+    name: "Build"
+    osx_image: xcode10.2
     compiler: clang
 
     script:
