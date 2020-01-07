@@ -1,9 +1,14 @@
-** ACIDANTHERA NOTES **
+dmidecode
+=========
+
+[![Build Status](https://travis-ci.com/acidanthera/dmidecode.svg?branch=master)](https://travis-ci.com/acidanthera/dmidecode)
+
+**ACIDANTHERA NOTES**
 
 This dmidecode version supports Apple-specific table decoding as well
 as native macOS SMBIOS reading through I/O Registry.
 
-** INTRODUCTION **
+**INTRODUCTION**
 
 Dmidecode reports information about your system's hardware as described in
 your system BIOS according to the SMBIOS/DMI standard. This information
@@ -24,7 +29,7 @@ Dmidecode does not scan your hardware, it only reports what the BIOS told it
 to.
 
 
-** INSTALLATION **
+**INSTALLATION**
 
 The home web page for dmidecode is hosted on Savannah:
   http://www.nongnu.org/dmidecode/
@@ -55,7 +60,7 @@ Compiling for an IA64 processor requires the memory alignment workaround,
 and it is enabled automatically.
 
 
-** DOCUMENTATION **
+**DOCUMENTATION**
 
 Each tool has a manual page, found in the "man" subdirectory. Manual pages
 are installed by "make install". See these manual pages for command line
@@ -72,7 +77,7 @@ joining the dmidecode-devel discussion list:
   http://lists.nongnu.org/mailman/listinfo/dmidecode-devel
 
 
-** COMMON PROBLEMS **
+**COMMON PROBLEMS**
 
 IA-64
 
@@ -92,7 +97,7 @@ Dmidecode used to work under Cygwin. However the /dev/mem interface was
 removed at some point in time so it no longer works.
 
 
-** MISCELLANEOUS TOOLS **
+**MISCELLANEOUS TOOLS**
 
 Three other tools come along with dmidecode: biosdecode, ownership and
 vpddecode. These tools are only useful on systems with a BIOS, so they
