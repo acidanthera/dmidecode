@@ -2,7 +2,7 @@
  * DMI Decode
  *
  *   Copyright (C) 2000-2002 Alan Cox <alan@redhat.com>
- *   Copyright (C) 2002-2018 Jean Delvare <jdelvare@suse.de>
+ *   Copyright (C) 2002-2019 Jean Delvare <jdelvare@suse.de>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -66,6 +66,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <sys/socket.h>
 
 #ifdef __FreeBSD__
 #include <errno.h>
@@ -317,7 +318,10 @@ static void dmi_bios_rom_size(u8 code1, u16 code2)
 	};
 
 	if (code1 != 0xFF)
-		printf(" %u kB", (code1 + 1) << 6);
+	{
+		u64 s = { .l = (code1 + 1) << 6 };
+		dmi_print_memory_size(s, 1);
+	}
 	else
 		printf(" %u %s", code2 & 0x3FFF, unit[code2 >> 14]);
 }
@@ -934,6 +938,10 @@ static const char *dmi_processor_family(const struct dmi_header *h, u16 ver)
 		{ 0x140, "WinChip" },
 		{ 0x15E, "DSP" },
 		{ 0x1F4, "Video Processor" },
+
+		{ 0x200, "RV32" },
+		{ 0x201, "RV64" },
+		{ 0x202, "RV128" },
 	};
 	/*
 	 * Note to developers: when adding entries to this list, check if
@@ -1551,27 +1559,29 @@ static const char *dmi_cache_location(u8 code)
 	return location[code];
 }
 
-static void dmi_cache_size(u16 code)
-{
-	if (code & 0x8000)
-		printf(" %u kB", (code & 0x7FFF) << 6);
-	else
-		printf(" %u kB", code);
-}
-
 static void dmi_cache_size_2(u32 code)
 {
+	u64 size;
+
 	if (code & 0x80000000)
 	{
 		code &= 0x7FFFFFFFLU;
-		/* Use a more convenient unit for large cache size */
-		if (code >= 0x8000)
-			printf(" %u MB", code >> 4);
-		else
-			printf(" %u kB", code << 6);
+		size.l = code << 6;
+		size.h = code >> 26;
 	}
 	else
-		printf(" %u kB", code);
+	{
+		size.l = code;
+		size.h = 0;
+	}
+
+	/* Use a more convenient unit for large cache size */
+	dmi_print_memory_size(size, 1);
+}
+
+static void dmi_cache_size(u16 code)
+{
+	dmi_cache_size_2((((u32)code & 0x8000LU) << 16) | (code & 0x7FFFLU));
 }
 
 static void dmi_cache_types(u16 code, const char *sep)
@@ -1816,6 +1826,9 @@ static const char *dmi_slot_type(u8 code)
 		"PCI Express Mini 52-pin without bottom-side keep-outs",
 		"PCI Express Mini 76-pin" /* 0x23 */
 	};
+	static const char *type_0x30[] = {
+		"CXL FLexbus 1.0" /* 0x30 */
+	};
 	static const char *type_0xA0[] = {
 		"PC-98/C20", /* 0xA0 */
 		"PC-98/C24",
@@ -1839,7 +1852,14 @@ static const char *dmi_slot_type(u8 code)
 		"PCI Express 3 x2",
 		"PCI Express 3 x4",
 		"PCI Express 3 x8",
-		"PCI Express 3 x16" /* 0xB6 */
+		"PCI Express 3 x16",
+		out_of_spec, /* 0xB7 */
+		"PCI Express 4",
+		"PCI Express 4 x1",
+		"PCI Express 4 x2",
+		"PCI Express 4 x4",
+		"PCI Express 4 x8",
+		"PCI Express 4 x16" /* 0xBD */
 	};
 	/*
 	 * Note to developers: when adding entries to these lists, check if
@@ -1848,7 +1868,9 @@ static const char *dmi_slot_type(u8 code)
 
 	if (code >= 0x01 && code <= 0x23)
 		return type[code - 0x01];
-	if (code >= 0xA0 && code <= 0xB6)
+	if (code == 0x30)
+		return type_0x30[code - 0x30];
+	if (code >= 0xA0 && code <= 0xBD)
 		return type_0xA0[code - 0xA0];
 	return out_of_spec;
 }
@@ -1896,15 +1918,17 @@ static const char *dmi_slot_current_usage(u8 code)
 
 static const char *dmi_slot_length(u8 code)
 {
-	/* 7.1O.4 */
+	/* 7.10.4 */
 	static const char *length[] = {
 		"Other", /* 0x01 */
 		"Unknown",
 		"Short",
-		"Long" /* 0x04 */
+		"Long",
+		"2.5\" drive form factor",
+		"3.5\" drive form factor" /* 0x06 */
 	};
 
-	if (code >= 0x01 && code <= 0x04)
+	if (code >= 0x01 && code <= 0x06)
 		return length[code - 0x01];
 	return out_of_spec;
 }
@@ -1950,6 +1974,12 @@ static void dmi_slot_id(u8 code1, u8 code2, u8 type, const char *prefix)
 		case 0xB4: /* PCI Express 3 */
 		case 0xB5: /* PCI Express 3 */
 		case 0xB6: /* PCI Express 3 */
+		case 0xB8: /* PCI Express 4 */
+		case 0xB9: /* PCI Express 4 */
+		case 0xBA: /* PCI Express 4 */
+		case 0xBB: /* PCI Express 4 */
+		case 0xBC: /* PCI Express 4 */
+		case 0xBD: /* PCI Express 4 */
 			printf("%sID: %u\n", prefix, code1);
 			break;
 		case 0x07: /* PCMCIA */
@@ -2002,6 +2032,16 @@ static void dmi_slot_segment_bus_func(u16 code1, u8 code2, u8 code3, const char 
 	if (!(code1 == 0xFFFF && code2 == 0xFF && code3 == 0xFF))
 		printf("%sBus Address: %04x:%02x:%02x.%x\n",
 		       prefix, code1, code2, code3 >> 3, code3 & 0x7);
+}
+
+static void dmi_slot_peers(u8 n, const u8 *data, const char *prefix)
+{
+	int i;
+
+	for (i = 1; i <= n; i++, data += 5)
+		printf("%sPeer Device %d: %04x:%02x:%02x.%x (Width %u)\n",
+		       prefix, i, WORD(data), data[2], data[3] >> 3,
+		       data[3] & 0x07, data[4]);
 }
 
 /*
@@ -2291,12 +2331,13 @@ static const char *dmi_memory_array_location(u8 code)
 		"PC-98/C20 Add-on Card", /* 0xA0 */
 		"PC-98/C24 Add-on Card",
 		"PC-98/E Add-on Card",
-		"PC-98/Local Bus Add-on Card" /* 0xA3 */
+		"PC-98/Local Bus Add-on Card",
+		"CXL Flexbus 1.0" /* 0xA4 */
 	};
 
 	if (code >= 0x01 && code <= 0x0A)
 		return location[code - 0x01];
-	if (code >= 0xA0 && code <= 0xA3)
+	if (code >= 0xA0 && code <= 0xA4)
 		return location_0xA0[code - 0xA0];
 	return out_of_spec;
 }
@@ -2370,10 +2411,10 @@ static void dmi_memory_device_size(u16 code)
 		printf(" Unknown");
 	else
 	{
-		if (code & 0x8000)
-			printf(" %u kB", code & 0x7FFF);
-		else
-			printf(" %u MB", code);
+		u64 s = { .l = code & 0x7FFF };
+		if (!(code & 0x8000))
+			s.l <<= 10;
+		dmi_print_memory_size(s, 1);
 	}
 }
 
@@ -2419,10 +2460,11 @@ static const char *dmi_memory_device_form_factor(u8 code)
 		"RIMM",
 		"SODIMM",
 		"SRIMM",
-		"FB-DIMM" /* 0x0F */
+		"FB-DIMM",
+		"Die" /* 0x10 */
 	};
 
-	if (code >= 0x01 && code <= 0x0F)
+	if (code >= 0x01 && code <= 0x10)
 		return form_factor[code - 0x01];
 	return out_of_spec;
 }
@@ -2470,10 +2512,13 @@ static const char *dmi_memory_device_type(u8 code)
 		"LPDDR",
 		"LPDDR2",
 		"LPDDR3",
-		"LPDDR4" /* 0x1E */
+		"LPDDR4",
+		"Logical non-volatile device",
+		"HBM",
+		"HBM2" /* 0x21 */
 	};
 
-	if (code >= 0x01 && code <= 0x1E)
+	if (code >= 0x01 && code <= 0x21)
 		return type[code - 0x01];
 	return out_of_spec;
 }
@@ -2529,7 +2574,7 @@ static void dmi_memory_technology(u8 code)
 		"NVDIMM-N",
 		"NVDIMM-F",
 		"NVDIMM-P",
-		"Intel persistent memory" /* 0x07 */
+		"Intel Optane DC persistent memory" /* 0x07 */
 	};
 	if (code >= 0x01 && code <= 0x07)
 		printf(" %s", technology[code - 0x01]);
@@ -3610,7 +3655,7 @@ static void dmi_parse_protocol_record(const char *prefix, u8 *rec)
 		hname = out_of_spec;
 		hlen = strlen(out_of_spec);
 	}
-	printf("%s\t\tRedfish Service Hostname: %*s\n", prefix, hlen, hname);
+	printf("%s\t\tRedfish Service Hostname: %.*s\n", prefix, hlen, hname);
 }
 
 /*
@@ -4179,6 +4224,11 @@ static void dmi_decode(const struct dmi_header *h, u16 ver)
 				dmi_slot_characteristics(data[0x0B], data[0x0C], "\t\t");
 			if (h->length < 0x11) break;
 			dmi_slot_segment_bus_func(WORD(data + 0x0D), data[0x0F], data[0x10], "\t");
+			if (h->length < 0x13) break;
+			printf("\tData Bus Width: %u\n", data[0x11]);
+			printf("\tPeer Devices: %u\n", data[0x12]);
+			if (h->length - 0x13 >= data[0x12] * 5)
+				dmi_slot_peers(data[0x12], data + 0x13, "\t");
 			break;
 
 		case 10: /* 7.11 On Board Devices Information */
@@ -4991,7 +5041,7 @@ static void dmi_decode(const struct dmi_header *h, u16 ver)
 			printf("\tVendor ID:");
 			dmi_tpm_vendor_id(data + 0x04);
 			printf("\n");
-			printf("\tSpecification Version: %d.%d", data[0x08], data[0x09]);
+			printf("\tSpecification Version: %d.%d\n", data[0x08], data[0x09]);
 			switch (data[0x08])
 			{
 				case 0x01:
@@ -5014,7 +5064,7 @@ static void dmi_decode(const struct dmi_header *h, u16 ver)
 					 */
 					break;
 			}
-			printf("\tDescription: %s", dmi_string(h, data[0x12]));
+			printf("\tDescription: %s\n", dmi_string(h, data[0x12]));
 			printf("\tCharacteristics:\n");
 			dmi_tpm_characteristics(QWORD(data + 0x13), "\t\t");
 			if (h->length < 0x1F) break;
@@ -5115,6 +5165,14 @@ static void dmi_table_string(const struct dmi_header *h, const u8 *data, u16 ver
 	key = (opt.string->type << 8) | offset;
 	switch (key)
 	{
+		case 0x015: /* -s bios-revision */
+			if (data[key - 1] != 0xFF && data[key] != 0xFF)
+				printf("%u.%u\n", data[key - 1], data[key]);
+			break;
+		case 0x017: /* -s firmware-revision */
+			if (data[key - 1] != 0xFF && data[key] != 0xFF)
+				printf("%u.%u\n", data[key - 1], data[key]);
+			break;
 		case 0x108:
 			dmi_system_uuid(data + offset, ver);
 			printf("\n");
@@ -5583,7 +5641,7 @@ int main(int argc, char * const argv[])
 	off_t fp;
 	size_t size;
 	int efi;
-	u8 *buf;
+	u8 *buf = NULL;
 
 	/*
 	 * We don't want stdout and stderr to be mixed up if both are
@@ -5706,7 +5764,7 @@ int main(int argc, char * const argv[])
 			printf("Failed to get SMBIOS data from sysfs.\n");
 	}
 
-	/* Next try EFI (ia64, Intel-based Mac) */
+	/* Next try EFI (ia64, Intel-based Mac, arm64) */
 	efi = address_from_efi(&fp);
 	switch (efi)
 	{
@@ -5739,6 +5797,7 @@ int main(int argc, char * const argv[])
 	goto done;
 
 memory_scan:
+#if defined __i386__ || defined __x86_64__
 	if (!(opt.flags & FLAG_QUIET))
 		printf("Scanning %s for entry point.\n", opt.devmem);
 	/* Fallback to memory scan (x86, x86_64) */
@@ -5781,6 +5840,7 @@ memory_scan:
 			}
 		}
 	}
+#endif
 
 done:
 	if (!found && !(opt.flags & FLAG_QUIET))

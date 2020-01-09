@@ -99,9 +99,9 @@
 			buildWorkingDirectory = "$(PROJECT_DIR)";
 			dependencies = (
 			);
-			name = "dmidecode";
+			name = dmidecode;
 			passBuildSettingsInEnvironment = 1;
-			productName = "dmidecode";
+			productName = dmidecode;
 		};
 /* End PBXLegacyTarget section */
 
@@ -109,14 +109,15 @@
 		12ECFB3A1852EADE0028E3A9 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastUpgradeCheck = 1130;
 			};
 			buildConfigurationList = 12ECFB3D1852EADE0028E3A9 /* Build configuration list for PBXProject "dmidecode" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				English,
 				en,
+				Base,
 			);
 			mainGroup = 12ECFB391852EADE0028E3A9;
 			projectDirPath = "";
@@ -158,7 +159,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = "dmidecode";
+				PRODUCT_NAME = dmidecode;
 			};
 			name = Debug;
 		};
@@ -170,7 +171,7 @@
 				GCC_ENABLE_FIX_AND_CONTINUE = NO;
 				OTHER_CFLAGS = "";
 				OTHER_LDFLAGS = "";
-				PRODUCT_NAME = "dmidecode";
+				PRODUCT_NAME = dmidecode;
 			};
 			name = Release;
 		};

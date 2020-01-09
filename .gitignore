@@ -1,12 +1,12 @@
 .DS_Store
 DerivedData
-*.o
 *.zip
 xcuserdata
 xcshareddata
 project.xcworkspace
 build
-dmidecode
 biosdecode
+dmidecode
 ownership
 vpddecode
+*.o
