@@ -5247,7 +5247,7 @@ static void dmi_table_decode(u8 *buf, u32 len, u16 num, u16 ver, u32 flags)
 			printf("Handle 0x%04X, DMI type %d, %d bytes\n",
 				h.handle, h.type, h.length);
 
-		for (int j = 0; j < (h.length >> 4) + 1; j++) {
+		for (int j = 0; j < (h.length >> 4) + ((h.length & 0xfu) != 0); j++) {
 			printf("%04x: ", j << 4);
 			for (int k = 0; (k < 16) && ((j << 4) + k < h.length); k++) {
 				printf("%02x ", data[(j<<4)+k]);
