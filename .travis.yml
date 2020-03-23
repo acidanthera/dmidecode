@@ -13,6 +13,7 @@ matrix:
 
     deploy:
       provider: releases
+      skip_cleanup: true
       file: "dmidecode-mac-*.zip"
       file_glob: true
       api_key:
