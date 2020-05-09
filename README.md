@@ -7,7 +7,7 @@ dmidecode
 
 This dmidecode version supports Apple-specific table decoding as well
 as native macOS SMBIOS reading through I/O Registry. Synced with
-[upstream](http://git.savannah.gnu.org/cgit/dmidecode.git) up to 62bce59f.
+[upstream](http://git.savannah.gnu.org/cgit/dmidecode.git) up to 5b3c8e99.
 
 **INTRODUCTION**
 
