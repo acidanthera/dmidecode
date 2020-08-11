@@ -124,3 +124,5 @@ This tool prints the contents of the "vital product data" structure as
 found in most IBM and Lenovo computers. It used to have a lookup table
 for the machine name, but it was unreliable and hard to maintain so it
 was ultimately dropped. It has a command line interface.
+
+Use -h flag for help.
