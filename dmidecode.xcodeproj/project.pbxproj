@@ -109,7 +109,7 @@
 		12ECFB3A1852EADE0028E3A9 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1130;
+				LastUpgradeCheck = 1230;
 			};
 			buildConfigurationList = 12ECFB3D1852EADE0028E3A9 /* Build configuration list for PBXProject "dmidecode" */;
 			compatibilityVersion = "Xcode 3.2";
