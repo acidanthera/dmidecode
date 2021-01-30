@@ -472,32 +472,37 @@ static void dmi_system_uuid(void (*print_cb)(const char *name, const char *forma
 	 * The specification says that this is the defacto standard,
 	 * however I've seen systems following RFC 4122 instead and use
 	 * network byte order, so I am reluctant to apply the byte-swapping
-	 * for older versions.
+	 * for older versions. Print in all three possible formats.
 	 */
-	if (ver >= 0x0206)
-	{
-		if (print_cb)
-			print_cb(attr,
-				"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-				p[3], p[2], p[1], p[0], p[5], p[4], p[7], p[6],
-				p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15]);
-		else
-			printf("%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\n",
-				p[3], p[2], p[1], p[0], p[5], p[4], p[7], p[6],
-				p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15]);
-	}
+	if (print_cb)
+		print_cb(attr,
+			"{%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x} (RAW)",
+			p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7],
+			p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15]);
 	else
-	{
-		if (print_cb)
-			print_cb(attr,
-				"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x",
-				p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7],
-				p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15]);
-		else
-			printf("%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x\n",
-				p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7],
-				p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15]);
-	}
+		printf("{%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x} (RAW)\n",
+			p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7],
+			p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15]);
+
+	if (print_cb)
+		print_cb(attr,
+			"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x (SMBIOS 2.6+%s)",
+			p[3], p[2], p[1], p[0], p[5], p[4], p[7], p[6],
+			p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15], ver >= 0x0206 ? ", preferred" : "");
+	else
+		printf("%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x (SMBIOS 2.6+%s)\n",
+			p[3], p[2], p[1], p[0], p[5], p[4], p[7], p[6],
+			p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15], ver >= 0x0206 ? ", preferred" : "");
+
+	if (print_cb)
+		print_cb(attr,
+			"%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x (RFC 4122, Apple)",
+			p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7],
+			p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15]);
+	else
+		printf("%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x (RFC 4122, Apple)\n",
+			p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7],
+			p[8], p[9], p[10], p[11], p[12], p[13], p[14], p[15]);
 }
 
 static const char *dmi_system_wake_up_type(u8 code)
