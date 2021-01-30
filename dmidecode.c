@@ -116,7 +116,7 @@ static void ascii_filter(char *bp, size_t len)
 	size_t i;
 
 	for (i = 0; i < len; i++)
-		if (bp[i] < 32 || bp[i] == 127)
+		if (bp[i] < 32 || bp[i] >= 127)
 			bp[i] = '.';
 }
 
@@ -248,9 +248,9 @@ static void dmi_dump(const struct dmi_header *h)
 			{
 				int j, l = strlen(s) + 1;
 
-				off = 0;
 				for (row = 0; row < ((l - 1) >> 4) + 1; row++)
 				{
+					off = 0;
 					for (j = 0; j < 16 && j < l - (row << 4); j++)
 						off += sprintf(raw_data + off,
 						       j ? " %02X" : "%02X",
@@ -267,7 +267,7 @@ static void dmi_dump(const struct dmi_header *h)
 }
 
 /* shift is 0 if the value is in bytes, 1 if it is in kilobytes */
-static void dmi_print_memory_size(const char *attr, u64 code, int shift)
+void dmi_print_memory_size(const char *attr, u64 code, int shift)
 {
 	unsigned long capacity;
 	u16 split[7];
@@ -2174,7 +2174,7 @@ static void dmi_slot_peers(u8 n, const u8 *data)
 
 	for (i = 1; i <= n; i++, data += 5)
 	{
-		sprintf(attr, "Peer Device %d", i);
+		sprintf(attr, "Peer Device %hhu", (u8)i);
 		pr_attr(attr, "%04x:%02x:%02x.%x (Width %u)",
 			WORD(data), data[2], data[3] >> 3, data[3] & 0x07,
 			data[4]);
@@ -2240,7 +2240,7 @@ static void dmi_oem_strings(const struct dmi_header *h)
 
 	for (i = 1; i <= count; i++)
 	{
-		sprintf(attr, "String %d", i);
+		sprintf(attr, "String %hhu", (u8)i);
 		pr_attr(attr, "%s",dmi_string(h, i));
 	}
 }
@@ -2258,7 +2258,7 @@ static void dmi_system_configuration_options(const struct dmi_header *h)
 
 	for (i = 1; i <= count; i++)
 	{
-		sprintf(attr, "Option %d", i);
+		sprintf(attr, "Option %hhu", (u8)i);
 		pr_attr(attr, "%s",dmi_string(h, i));
 	}
 }
@@ -3423,11 +3423,11 @@ static void dmi_memory_channel_devices(u8 count, const u8 *p)
 
 	for (i = 1; i <= count; i++)
 	{
-		sprintf(attr, "Device %d Load", i);
+		sprintf(attr, "Device %hhu Load", (u8)i);
 		pr_attr(attr, "%u", p[3 * i]);
 		if (!(opt.flags & FLAG_QUIET))
 		{
-			sprintf(attr, "Device %d Handle", i);
+			sprintf(attr, "Device %hhu Handle", (u8)i);
 			pr_attr(attr, "0x%04X", WORD(p + 3 * i + 1));
 		}
 	}
@@ -5221,6 +5221,51 @@ static void dmi_table_decode(u8 *buf, u32 len, u16 num, u16 ver, u32 flags)
 	u8 *data;
 	int i = 0;
 
+	/* First pass: Save the vendor so that so that we can decode OEM types */
+	data = buf;
+	while ((i < num || !num)
+	    && data + 4 <= buf + len) /* 4 is the length of an SMBIOS structure header */
+	{
+		u8 *next;
+		struct dmi_header h;
+
+		to_dmi_header(&h, data);
+
+		/*
+		 * If a short entry is found (less than 4 bytes), not only it
+		 * is invalid, but we cannot reliably locate the next entry.
+		 * Also stop at end-of-table marker if so instructed.
+		 */
+		if (h.length < 4 ||
+		    (h.type == 127 &&
+		     (opt.flags & (FLAG_QUIET | FLAG_STOP_AT_EOT))))
+			break;
+		i++;
+
+		/* Look for the next handle */
+		next = data + h.length;
+		while ((unsigned long)(next - buf + 1) < len
+		    && (next[0] != 0 || next[1] != 0))
+			next++;
+		next += 2;
+
+		/* Make sure the whole structure fits in the table */
+		if ((unsigned long)(next - buf) > len)
+			break;
+
+		/* Assign vendor for vendor-specific decodes later */
+		if (h.type == 1 && h.length >= 6)
+		{
+			dmi_set_vendor(_dmi_string(&h, data[0x04], 0),
+				       _dmi_string(&h, data[0x05], 0));
+			break;
+		}
+
+		data = next;
+	}
+
+	/* Second pass: Actually decode the data */
+	i = 0;
 	data = buf;
 	while ((i < num || !num)
 	    && data + 4 <= buf + len) /* 4 is the length of an SMBIOS structure header */
@@ -5288,11 +5333,6 @@ static void dmi_table_decode(u8 *buf, u32 len, u16 num, u16 ver, u32 flags)
 			data = next;
 			break;
 		}
-
-		/* assign vendor for vendor-specific decodes later */
-		if (h.type == 1 && h.length >= 6)
-			dmi_set_vendor(_dmi_string(&h, data[0x04], 0),
-				       _dmi_string(&h, data[0x05], 0));
 
 		/* Fixup a common mistake */
 		if (h.type == 34)
