@@ -1,6 +1,9 @@
 Acidanthera dmidecode Changelog
 ===============================
 
+#### v3.3c
+- Fixed compatibility for macOS 10.7+
+
 #### v3.3b
 - Synced with dmidecode a4b31b2b
 - Added improved UUID dumping support
