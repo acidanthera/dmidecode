@@ -17,7 +17,7 @@ jobs:
     env:
       JOB_TYPE: BUILD
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: CI Bootstrap
         run: |
           src=$(/usr/bin/curl -Lfs https://raw.githubusercontent.com/acidanthera/ocbuild/master/ci-bootstrap.sh) && eval "$src" || exit 1
@@ -26,7 +26,7 @@ jobs:
       - run: zip -qry -FS dmidecode-mac-$(cat version.h | cut -f2 -d'"').zip dmidecode
 
       - name: Upload to Artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Artifacts
           path: dmidecode-mac-*.zip
