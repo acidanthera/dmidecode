@@ -1,6 +1,9 @@
 Acidanthera dmidecode Changelog
 ===============================
 
+#### v3.4a
+- Synced with dmidecode a1a2258f
+
 #### v3.3c
 - Fixed compatibility for macOS 10.7+
 

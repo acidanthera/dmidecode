@@ -243,7 +243,7 @@ static void dmi_hp_203_bayenc(const char *fname, u8 num)
 
 static void dmi_hp_203_devtyp(const char *fname, unsigned int code)
 {
-	static const char *str = "Reserved";
+	const char *str = "Reserved";
 	static const char *type[] = {
 		"Unknown", /* 0x00 */
 		"Reserved",
@@ -273,7 +273,7 @@ static void dmi_hp_203_devtyp(const char *fname, unsigned int code)
 
 static void dmi_hp_203_devloc(const char *fname, unsigned int code)
 {
-	static const char *str = "Reserved";
+	const char *str = "Reserved";
 	static const char *location[] = {
 		"Unknown", /* 0x00 */
 		"Embedded",
@@ -299,6 +299,147 @@ static void dmi_hp_203_devloc(const char *fname, unsigned int code)
 	pr_attr(fname, "%s", str);
 }
 
+static int dmi_hp_224_status(u8 code)
+{
+	static const char * const present[] = {
+		"Not Present", /* 0x00 */
+		"Present/Enabled",
+		"Present/Disabled",
+		"Reserved" /* 0x03 */
+	};
+
+	pr_attr("Status", "%s", present[code & 0x03]);
+	if ((code & 0x03) == 0x00)
+		return 0;
+	pr_attr("Option ROM Measuring", "%s", (code & (1 << 2)) ? "Yes" : "No");
+	pr_attr("Hidden", "%s", (code & (1 << 3)) ? "Yes" : "No");
+	return 1;
+}
+
+static void dmi_hp_224_ex_status(u8 status, u8 code)
+{
+	const char *str = "Reserved";
+	static const char * const disable_reason[] = {
+		"Not Specified", /* 0x00 */
+		"User Disabled",
+		"Error Condition",
+		"Reserved"	/* 0x03 */
+	};
+	static const char * const error_condition[] = {
+		"Not Specified", /* 0x00 */
+		"Self-Test",     /* 0x01 */
+	};
+	if ((status & 0x03) == 0x02)
+		pr_attr("Disable Reason", "%s", disable_reason[code & 0x03]);
+	if ((code & 0x03) == 0x02) {
+		u8 error = (code >> 2) & 0x0f;
+		if (error < ARRAY_SIZE(error_condition))
+			str = error_condition[error];
+		pr_attr("Error Condition", "%s", str);
+	}
+}
+
+static void dmi_hp_224_module_type(u8 code)
+{
+	const char *str = "Reserved";
+	static const char * const type[] = {
+		"Not Specified", /* 0x00 */
+		"TPM 1.2",
+		"TPM 2.0",
+		"Intel PTT fTPM" /* 0x03 */
+	};
+	if ((code & 0x0f) < ARRAY_SIZE(type))
+		str = type[code & 0x0f];
+	pr_attr("Type", "%s", str);
+	pr_attr("Standard Algorithm Supported", "%s", (code & (1 << 4)) ? "Yes" : "No");
+	pr_attr("Chinese Algorithm Supported", "%s", (code & (1 << 5)) ? "Yes" : "No");
+}
+
+static void dmi_hp_224_module_attr(u8 code)
+{
+	static const char * const phys_attr[] = {
+		"Not Specified", /* 0x00 */
+		"Pluggable and Optional",
+		"Pluggable but Standard",
+		"Soldered Down on System Board"  /* 0x03 */
+	};
+	static const char * const fips_attr[] = {
+		"Not Specified", /* 0x00 */
+		"Not FIPS Certified",
+		"FIPS Certified",
+		"Reserved"  /* 0x03 */
+	};
+	pr_attr("Trusted Module Attributes", "%s", phys_attr[code & 0x3]);
+	pr_attr("FIPS Certification", "%s", fips_attr[((code >> 2) & 0x03)]);
+}
+
+static void dmi_hp_224_chipid(u16 code)
+{
+	const char *str = "Reserved";
+	static const char * const chipid[] = {
+		"None", /* 0x00 */
+		"STMicroGen10 TPM",
+		"Intel firmware TPM (PTT)",
+		"Nationz TPM",
+		"STMicroGen10 Plus TPM",
+		"STMicroGen11 TPM", /* 0x05 */
+	};
+	if ((code & 0xff) < ARRAY_SIZE(chipid))
+		str = chipid[code & 0xff];
+	pr_attr("Chip Identifier", "%s", str);
+}
+
+static void dmi_hp_238_loc(const char *fname, unsigned int code)
+{
+	const char *str = "Reserved";
+	static const char *location[] = {
+		"Internal", /* 0x00 */
+		"Front of Server",
+		"Rear of Server",
+		"Embedded internal SD Card",
+		"iLO USB",
+		"HP NAND Controller (USX 2065 or other)",
+		"Reserved",
+		"Debug Port", /* 0x07 */
+	};
+
+	if (code < ARRAY_SIZE(location))
+		str = location[code];
+
+	pr_attr(fname, "%s", str);
+}
+
+static void dmi_hp_238_flags(const char *fname, unsigned int code)
+{
+	const char *str = "Reserved";
+	static const char *flags[] = {
+		"Not Shared", /* 0x00 */
+		"Shared with physical switch",
+		"Shared with automatic control", /* 0x02 */
+	};
+
+	if (code < ARRAY_SIZE(flags))
+		str = flags[code];
+
+	pr_attr(fname, "%s", str);
+}
+
+static void dmi_hp_238_speed(const char *fname, unsigned int code)
+{
+	const char *str = "Reserved";
+	static const char *speed[] = {
+		"Reserved", /* 0x00 */
+		"USB 1.1 Full Speed",
+		"USB 2.0 High Speed",
+		"USB 3.0 Super Speed" /* 0x03 */
+	};
+
+	if (code < ARRAY_SIZE(speed))
+		str = speed[code];
+
+	pr_attr(fname, "%s", str);
+}
+
 static int dmi_decode_hp(const struct dmi_header *h)
 {
 	u8 *data = h->data;
@@ -313,6 +454,58 @@ static int dmi_decode_hp(const struct dmi_header *h)
 
 	switch (h->type)
 	{
+		case 194:
+			/*
+			 * Vendor Specific: Super IO Enable/Disable Features
+			 *
+			 * Offset |  Name      | Width | Description
+			 * -------------------------------------
+			 *  0x00  | Type       | BYTE  | 0xC2, Super IO Enable/Disable Indicator
+			 *  0x01  | Length     | BYTE  | Length of structure
+			 *  0x02  | Handle     | WORD  | Unique handle
+			 *  0x04  | Dev Status | BYTE  | Device Status
+			 */
+			pr_handle_name("%s ProLiant Super IO Enable/Disable Indicator", company);
+			if (h->length < 0x05) break;
+			feat = data[0x04];
+			pr_attr("Serial Port A", "%s", feat & (1 << 0) ? "Enabled" : "Disabled");
+			pr_attr("Serial Port B", "%s", feat & (1 << 1) ? "Enabled" : "Disabled");
+			pr_attr("Parallel Port", "%s", feat & (1 << 2) ? "Enabled" : "Disabled");
+			pr_attr("Floppy Disk Port", "%s", feat & (1 << 3) ? "Enabled" : "Disabled");
+			pr_attr("Virtual Serial Port", "%s", feat & (1 << 4) ? "Enabled" : "Disabled");
+			break;
+
+		case 199:
+			/*
+			 * Vendor Specific: CPU Microcode Patch
+			 *
+			 * Offset |  Name      | Width | Description
+			 * -------------------------------------
+			 *  0x00  | Type       | BYTE  | 0xC7, CPU Microcode Patch
+			 *  0x01  | Length     | BYTE  | Length of structure
+			 *  0x02  | Handle     | WORD  | Unique handle
+			 *  0x04  | Patch Info | Varies| { <DWORD: ID, DWORD Date, DWORD CPUID> ...}
+			 */
+			if (gen < G9) return 0;
+			pr_handle_name("%s ProLiant CPU Microcode Patch Support Info", company);
+
+			for (ptr = 0x4; ptr + 12 <= h->length; ptr += 12) {
+				u32 cpuid = DWORD(data + ptr + 2 * 4);
+				u32 date;
+
+				/* AMD omits BaseFamily. Reconstruction valid on family >= 15. */
+				if (cpuid_type == cpuid_x86_amd)
+					cpuid = ((cpuid & 0xfff00) << 8) | 0x0f00 | (cpuid & 0xff);
+
+				dmi_print_cpuid(pr_attr, "CPU ID", cpuid_type, (u8 *) &cpuid);
+
+				date = DWORD(data + ptr + 4);
+				pr_subattr("Date", "%04x-%02x-%02x",
+					date & 0xffff, (date >> 24) & 0xff, (date >> 16) & 0xff);
+				pr_subattr("Patch", "0x%X", DWORD(data + ptr));
+			}
+			break;
+
 		case 203:
 			/*
 			 * Vendor Specific: HP Device Correlation Record
@@ -349,9 +542,9 @@ static int dmi_decode_hp(const struct dmi_header *h)
 			 *  0x26  | Bus Number   | BYTE  | PCI Device Bus Number
 			 *  0x27  | Func Number  | BTYE  | PCI Device and Function Number
 			 */
-			if (gen < G9) break;
+			if (gen < G9) return 0;
+			pr_handle_name("%s Device Correlation Record", company);
 			if (h->length < 0x1F) break;
-			pr_handle_name("%s HP Device Correlation Record", company);
 			dmi_hp_203_assoc_hndl("Associated Device Record", WORD(data + 0x04));
 			dmi_hp_203_assoc_hndl("Associated SMBus Record",  WORD(data + 0x06));
 			if (WORD(data + 0x08) == 0xffff && WORD(data + 0x0A) == 0xffff &&
@@ -496,6 +689,36 @@ static int dmi_decode_hp(const struct dmi_header *h)
 			pr_subattr("UEFI", "%s", feat & 0x1400 ? "Yes" : "No");
 			break;
 
+		case 224:
+			/*
+			 * Vendor Specific: Trusted Module (TPM or TCM) Status
+			 *
+			 * Offset |  Name  | Width | Description
+			 * -------------------------------------
+			 *  0x00  | Type   | BYTE  | 0xE0, Trusted Module (TPM or TCM) Status
+			 *  0x01  | Length | BYTE  | Length of structure
+			 *  0x02  | Handle | WORD  | Unique handle
+			 *  0x04  | Status | BYTE  | Status Flag Byte
+			 *  0x05  | Ex Stat| BYTE  | TPM Extended Status
+			 *  0x06  | Type   | BYTE  | Trusted Module Type
+			 *  0x07  | Attrib | BYTE  | Trusted Module Attributes
+			 *  0x08  | Handle | WORD  | Handle to map to Type 216
+			 *  0x0A  | Chip ID| WORD  | Chip Identifier Values
+			 */
+			pr_handle_name("%s Trusted Module (TPM or TCM) Status", company);
+			if (h->length < 0x05) break;
+			if (!dmi_hp_224_status(data[0x04]))
+				break;
+			if (h->length < 0x0a) break;
+			dmi_hp_224_ex_status(data[0x04], data[0x05]);
+			dmi_hp_224_module_type(data[0x06]);
+			dmi_hp_224_module_attr(data[0x07]);
+			if (!(opt.flags & FLAG_QUIET))
+				pr_attr("Associated Handle", "0x%04X", WORD(data + 0x8));
+			if (h->length < 0x0c) break;
+			dmi_hp_224_chipid(WORD(data + 0x0a));
+			break;
+
 		case 233:
 			/*
 			 * Vendor Specific: HPE ProLiant NIC MAC Information
@@ -558,6 +781,71 @@ static int dmi_decode_hp(const struct dmi_header *h)
 				pr_attr("A2 Bay Count", "%d", data[0x13]);
 				pr_attr("Backplane Name", "%s", dmi_string(h, data[0x14]));
 			}
+			break;
+
+		case 237:
+			/*
+			 * Vendor Specific: HPE DIMM Vendor Part Number Information
+			 *
+			 * Offset |  Name      | Width | Description
+			 * ---------------------------------------
+			 *  0x00  | Type       | BYTE  | 0xED, DIMM Vendor Part Number information record
+			 *  0x01  | Length     | BYTE  | Length of structure
+			 *  0x02  | Handle     | WORD  | Unique handle
+			 *  0x04  | Hand Assoc | WORD  | Handle to map to Type 17
+			 *  0x06  | Manufacture|STRING | DIMM Manufacturer
+			 *  0x07  | Part Number|STRING | DIMM Manufacturer's Part Number
+			 *  0x08  | Serial Num |STRING | DIMM Vendor Serial Number
+			 *  0x09  | Spare Part |STRING | DIMM Spare Part Number
+			 */
+			if (gen < G9) return 0;
+			pr_handle_name("%s DIMM Vendor Information", company);
+			if (h->length < 0x08) break;
+			if (!(opt.flags & FLAG_QUIET))
+				pr_attr("Associated Handle", "0x%04X", WORD(data + 0x4));
+			pr_attr("DIMM Manufacturer", "%s", dmi_string(h, data[0x06]));
+			pr_attr("DIMM Manufacturer Part Number", "%s", dmi_string(h, data[0x07]));
+			if (h->length < 0x09) break;
+			pr_attr("DIMM Vendor Serial Number", "%s", dmi_string(h, data[0x08]));
+			if (h->length < 0x0A) break;
+			pr_attr("DIMM Spare Part Number", "%s", dmi_string(h, data[0x09]));
+			break;
+
+		case 238:
+			/*
+			 * Vendor Specific: HPE USB Port Connector Correlation Record
+			 *
+			 * Offset |  Name      | Width | Description
+			 * ---------------------------------------
+			 *  0x00  | Type       | BYTE  | 0xEE, HP Device Correlation Record
+			 *  0x01  | Length     | BYTE  | Length of structure
+			 *  0x02  | Handle     | WORD  | Unique handle
+			 *  0x04  | Hand Assoc | WORD  | Handle to map to Type 8
+			 *  0x06  | Parent Bus | BYTE  | PCI Bus number of USB controller of this port
+			 *  0x07  | Par Dev/Fun| BYTE  | PCI Dev/Fun of USB Controller of this port
+			 *  0x08  | Location   | BYTE  | Enumerated value of location of USB port
+			 *  0x09  | Flags      | WORD  | USB Shared Management Port
+			 *  0x0B  | Port Inst  | BYTE  | Instance number for this type of USB port
+			 *  0x0C  | Parent Hub | BYTE  | Instance number of internal Hub
+			 *  0x0D  | Port Speed | BYTE  | Enumerated value of speed configured by BIOS
+			 *  0x0E  | Device Path| STRING| UEFI Device Path of USB endpoint
+			 */
+			if (gen < G9) return 0;
+			pr_handle_name("%s Proliant USB Port Connector Correlation Record", company);
+			if (h->length < 0x0F) break;
+			if (!(opt.flags & FLAG_QUIET))
+				pr_attr("Associated Handle", "0x%04X", WORD(data + 0x4));
+			pr_attr("PCI Device", "%02x:%02x.%x", data[0x6],
+				data[0x7] >> 3, data[0x7] & 0x7);
+			dmi_hp_238_loc("Location", data[0x8]);
+			dmi_hp_238_flags("Management Port", WORD(data + 0x9));
+			pr_attr("Port Instance", "%d", data[0xB]);
+			if (data[0xC] != 0xFE)
+				pr_attr("Parent Hub Port Instance", "%d", data[0xC]);
+			else
+				pr_attr("Parent Hub Port Instance", "N/A");
+			dmi_hp_238_speed("Port Speed Capability", data[0xD]);
+			pr_attr("Device Path", "%s", dmi_string(h, data[0xE]));
 			break;
 
 		case 240:
