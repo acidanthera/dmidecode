@@ -32,8 +32,8 @@ LDFLAGS ?=
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
-	CFLAGS += -mmacosx-version-min=10.7
-	LDFLAGS += -Wl,-framework,CoreFoundation -Wl,-framework,IOKit -mmacosx-version-min=10.7
+	CFLAGS += -mmacosx-version-min=10.7 -arch arm64 -arch x86_64
+	LDFLAGS += -Wl,-framework,CoreFoundation -Wl,-framework,IOKit -mmacosx-version-min=10.7 -arch arm64 -arch x86_64
 endif
 
 DESTDIR =
