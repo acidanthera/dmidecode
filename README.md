@@ -1,7 +1,7 @@
 dmidecode
 =========
 
-[![Build Status](https://github.com/acidanthera/dmidecode/workflows/CI/badge.svg?branch=master)](https://github.com/acidanthera/dmidecode/actions)
+[![Build Status](https://github.com/acidanthera/dmidecode/actions/workflows/main.yml/badge.svg?branch=master)](https://github.com/acidanthera/dmidecode/actions)
 
 **ACIDANTHERA NOTES**
 
