@@ -12,7 +12,6 @@
 		12ECFB411852EADE0028E3A9 /* biosdecode */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = biosdecode; sourceTree = "<group>"; };
 		12ECFB421852EADE0028E3A9 /* biosdecode.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = biosdecode.c; sourceTree = "<group>"; };
 		12ECFB431852EADE0028E3A9 /* biosdecode.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = biosdecode.o; sourceTree = "<group>"; };
-		12ECFB441852EADE0028E3A9 /* CHANGELOG */ = {isa = PBXFileReference; lastKnownFileType = text; path = CHANGELOG; sourceTree = "<group>"; };
 		12ECFB451852EADE0028E3A9 /* config.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
 		12ECFB461852EADE0028E3A9 /* dmidecode */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = dmidecode; sourceTree = "<group>"; };
 		12ECFB471852EADE0028E3A9 /* dmidecode.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = dmidecode.c; sourceTree = "<group>"; };
@@ -30,7 +29,6 @@
 		12ECFB531852EADE0028E3A9 /* ownership */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = ownership; sourceTree = "<group>"; };
 		12ECFB541852EADE0028E3A9 /* ownership.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ownership.c; sourceTree = "<group>"; };
 		12ECFB551852EADE0028E3A9 /* ownership.o */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.objfile"; path = ownership.o; sourceTree = "<group>"; };
-		12ECFB561852EADE0028E3A9 /* README */ = {isa = PBXFileReference; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
 		12ECFB571852EADE0028E3A9 /* types.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
 		12ECFB581852EADE0028E3A9 /* util.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = util.c; sourceTree = "<group>"; };
 		12ECFB591852EADE0028E3A9 /* util.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = util.h; sourceTree = "<group>"; };
@@ -53,7 +51,6 @@
 				12ECFB411852EADE0028E3A9 /* biosdecode */,
 				12ECFB421852EADE0028E3A9 /* biosdecode.c */,
 				12ECFB431852EADE0028E3A9 /* biosdecode.o */,
-				12ECFB441852EADE0028E3A9 /* CHANGELOG */,
 				12ECFB451852EADE0028E3A9 /* config.h */,
 				12ECFB461852EADE0028E3A9 /* dmidecode */,
 				12ECFB471852EADE0028E3A9 /* dmidecode.c */,
@@ -71,7 +68,6 @@
 				12ECFB531852EADE0028E3A9 /* ownership */,
 				12ECFB541852EADE0028E3A9 /* ownership.c */,
 				12ECFB551852EADE0028E3A9 /* ownership.o */,
-				12ECFB561852EADE0028E3A9 /* README */,
 				12ECFB571852EADE0028E3A9 /* types.h */,
 				12ECFB581852EADE0028E3A9 /* util.c */,
 				12ECFB591852EADE0028E3A9 /* util.h */,
@@ -109,7 +105,7 @@
 		12ECFB3A1852EADE0028E3A9 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1230;
+				LastUpgradeCheck = 1530;
 			};
 			buildConfigurationList = 12ECFB3D1852EADE0028E3A9 /* Build configuration list for PBXProject "dmidecode" */;
 			compatibilityVersion = "Xcode 3.2";

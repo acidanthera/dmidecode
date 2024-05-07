@@ -1,7 +1,7 @@
 /*
  * This file is part of the dmidecode project.
  *
- *   Copyright (C) 2003-2017 Jean Delvare <jdelvare@suse.de>
+ *   Copyright (C) 2003-2023 Jean Delvare <jdelvare@suse.de>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,5 +27,4 @@
 int checksum(const u8 *buf, size_t len);
 void *read_file(off_t base, size_t *len, const char *filename);
 void *mem_chunk(off_t base, size_t len, const char *devmem);
-int write_dump(size_t base, size_t len, const void *data, const char *dumpfile, int add);
 u64 u64_range(u64 start, u64 end);

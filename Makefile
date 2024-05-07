@@ -42,6 +42,7 @@ sbindir = $(prefix)/sbin
 mandir  = $(prefix)/share/man
 man8dir = $(mandir)/man8
 docdir  = $(prefix)/share/doc/dmidecode
+compdir = $(shell pkg-config --variable=completionsdir bash-completion 2>/dev/null || echo $(prefix)/etc/bash_completion.d)
 
 INSTALL         := install
 INSTALL_DATA    := $(INSTALL) -m 644
@@ -119,9 +120,9 @@ util.o : util.c types.h util.h config.h
 strip : $(PROGRAMS)
 	strip $(PROGRAMS)
 
-install : install-bin install-man install-doc
+install : install-bin install-man install-doc install-completion
 
-uninstall : uninstall-bin uninstall-man uninstall-doc
+uninstall : uninstall-bin uninstall-man uninstall-doc uninstall-completion
 
 install-bin : $(PROGRAMS)
 	$(INSTALL_DIR) $(DESTDIR)$(sbindir)

@@ -1,4 +1,4 @@
-.TH DMIDECODE 8 "January 2019" "dmidecode"
+.TH DMIDECODE 8 "February 2023" "dmidecode"
 .\"
 .SH NAME
 dmidecode \- \s-1DMI\s0 table decoder
@@ -70,6 +70,11 @@ Read memory from device \fIFILE\fP (default: \fI/dev/mem\fP)
 Be less verbose. Unknown, inactive and \s-1OEM\s0-specific entries are not
 displayed. Meta-data and handle references are hidden.
 .TP
+.BR "  " "  " "--no-quirks"
+Decode everything exactly as it is in the table, without trying to fix up
+common mistakes or hide irrelevant fields.
+This mode is primarily aimed at firmware developers.
+.TP
 .BR "-s" ", " "--string \fIKEYWORD\fP"
 Only display the value of the \s-1DMI\s0 string identified by \fIKEYWORD\fP.
 It must be a keyword from the following list:
@@ -122,6 +127,10 @@ typically from files under
 .IR /sys/devices/virtual/dmi/id .
 Most of these files are even readable by regular users.
 .TP
+.BR "  " "  " "--list-strings"
+List available string keywords, which can then be passed to the \fB--string\fP
+option.
+.TP
 .BR "-t" ", " "--type \fITYPE\fP"
 Only display the entries of type \fITYPE\fP. It can be either a
 \s-1DMI\s0 type number, or a comma-separated list of type numbers, or a
@@ -145,6 +154,10 @@ is printed and
 .B dmidecode
 exits with an error.
 .TP
+.BR "  " "  " "--list-types"
+List available type keywords, which can then be passed to the \fB--type\fP
+option.
+.TP
 .BR "-H" ", " "--handle \fIHANDLE\fP"
 Only display the entry whose handle matches \fIHANDLE\fP.
 \fIHANDLE\fP is a 16-bit integer.
@@ -159,6 +172,7 @@ hexadecimal and \s-1ASCII\s0. This option is mainly useful for debugging.
 Do not decode the entries, instead dump the DMI data to a file in binary
 form. The generated file is suitable to pass to \fB--from-dump\fP
 later.
+\fIFILE\fP must not exist.
 .TP
 .BR "  " "  " "--from-dump \fIFILE\fP"
 Read the DMI data from a binary file previously generated using

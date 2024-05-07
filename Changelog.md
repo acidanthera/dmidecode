@@ -1,6 +1,9 @@
 Acidanthera dmidecode Changelog
 ===============================
 
+#### v3.6a
+- Synced with dmidecode 51b1ecc2
+
 #### v3.4a
 - Synced with dmidecode a1a2258f
 - Added Apple Silicon support

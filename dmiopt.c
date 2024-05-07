@@ -2,7 +2,7 @@
  * Command line handling of dmidecode
  * This file is part of the dmidecode project.
  *
- *   Copyright (C) 2005-2008 Jean Delvare <jdelvare@suse.de>
+ *   Copyright (C) 2005-2023 Jean Delvare <jdelvare@suse.de>
  *
  *   This program is free software; you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -265,12 +265,14 @@ static u32 parse_opt_handle(const char *arg)
 int parse_command_line(int argc, char * const argv[])
 {
 	int option;
+	unsigned int i;
 	const char *optstring = "d:hqs:t:uH:Vi:";
 	struct option longopts[] = {
 		{ "dev-mem", required_argument, NULL, 'd' },
 		{ "input-file", required_argument, NULL, 'i' },
 		{ "help", no_argument, NULL, 'h' },
 		{ "quiet", no_argument, NULL, 'q' },
+		{ "no-quirks", no_argument, NULL, 'Q' },
 		{ "string", required_argument, NULL, 's' },
 		{ "type", required_argument, NULL, 't' },
 		{ "dump", no_argument, NULL, 'u' },
@@ -279,6 +281,8 @@ int parse_command_line(int argc, char * const argv[])
 		{ "handle", required_argument, NULL, 'H' },
 		{ "oem-string", required_argument, NULL, 'O' },
 		{ "no-sysfs", no_argument, NULL, 'S' },
+		{ "list-strings", no_argument, NULL, 'L' },
+		{ "list-types", no_argument, NULL, 'T' },
 		{ "version", no_argument, NULL, 'V' },
 		{ NULL, 0, NULL, 0 }
 	};
@@ -307,6 +311,9 @@ int parse_command_line(int argc, char * const argv[])
 			case 'q':
 				opt.flags |= FLAG_QUIET;
 				break;
+			case 'Q':
+				opt.flags |= FLAG_NO_QUIRKS;
+				break;
 			case 's':
 				if (parse_opt_string(optarg) < 0)
 					return -1;
@@ -333,6 +340,16 @@ int parse_command_line(int argc, char * const argv[])
 			case 'S':
 				opt.flags |= FLAG_NO_SYSFS;
 				break;
+			case 'L':
+				for (i = 0; i < ARRAY_SIZE(opt_string_keyword); i++)
+					fprintf(stdout, "%s\n", opt_string_keyword[i].keyword);
+				opt.flags |= FLAG_LIST;
+				return 0;
+			case 'T':
+				for (i = 0; i < ARRAY_SIZE(opt_type_keyword); i++)
+					fprintf(stdout, "%s\n", opt_type_keyword[i].keyword);
+				opt.flags |= FLAG_LIST;
+				return 0;
 			case 'V':
 				opt.flags |= FLAG_VERSION;
 				break;
@@ -377,8 +394,11 @@ void print_help(void)
 		" -d, --dev-mem FILE     Read memory from device FILE (default: " DEFAULT_MEM_DEV ")\n"
 		" -h, --help             Display this help text and exit\n"
 		" -q, --quiet            Less verbose output\n"
+		"     --no-quirks        Decode everything without quirks\n"
 		" -s, --string KEYWORD   Only display the value of the given DMI string\n"
+		"     --list-strings     List available string keywords and exit\n"
 		" -t, --type TYPE        Only display the entries of given type\n"
+		"     --list-types       List available type keywords and exit\n"
 		" -H, --handle HANDLE    Only display the entry of given handle\n"
 		" -u, --dump             Do not decode the entries\n"
 		"     --dump-bin FILE    Dump the DMI data to a binary file\n"
